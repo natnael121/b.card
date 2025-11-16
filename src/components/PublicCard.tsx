@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react';
 import { BusinessCard } from '../lib/firebase';
 import { getBusinessCardBySlug } from '../services/firestore';
-import { Download, QrCode, Mail, Phone, Globe, MapPin } from 'lucide-react';
+import { Download, QrCode, Mail, Phone, Globe, MapPin, Shield } from 'lucide-react';
 import { downloadVCard } from '../lib/vcard';
 import { generateQRCodeURL } from '../lib/qrcode';
+import { trackEvent } from '../services/analytics';
+import AnalyticsOptOut from './AnalyticsOptOut';
 
 interface PublicCardProps {
   slug: string;
@@ -13,10 +15,17 @@ export default function PublicCard({ slug }: PublicCardProps) {
   const [card, setCard] = useState<BusinessCard | null>(null);
   const [loading, setLoading] = useState(true);
   const [showQR, setShowQR] = useState(false);
+  const [showPrivacySettings, setShowPrivacySettings] = useState(false);
 
   useEffect(() => {
     loadCard();
   }, [slug]);
+
+  useEffect(() => {
+    if (card) {
+      trackEvent(card.id, 'visit');
+    }
+  }, [card]);
 
   const loadCard = async () => {
     try {
@@ -87,6 +96,7 @@ export default function PublicCard({ slug }: PublicCardProps) {
               {card.email && (
                 <a
                   href={`mailto:${card.email}`}
+                  onClick={() => trackEvent(card.id, 'email_click')}
                   className="flex items-center gap-4 p-4 bg-slate-50 rounded-xl hover:bg-slate-100 transition group"
                 >
                   <div className="w-12 h-12 rounded-lg bg-blue-100 flex items-center justify-center group-hover:bg-blue-200 transition">
@@ -102,6 +112,7 @@ export default function PublicCard({ slug }: PublicCardProps) {
               {card.phone && (
                 <a
                   href={`tel:${card.phone}`}
+                  onClick={() => trackEvent(card.id, 'phone_click')}
                   className="flex items-center gap-4 p-4 bg-slate-50 rounded-xl hover:bg-slate-100 transition group"
                 >
                   <div className="w-12 h-12 rounded-lg bg-blue-100 flex items-center justify-center group-hover:bg-blue-200 transition">
@@ -119,6 +130,7 @@ export default function PublicCard({ slug }: PublicCardProps) {
                   href={card.website}
                   target="_blank"
                   rel="noopener noreferrer"
+                  onClick={() => trackEvent(card.id, 'website_click')}
                   className="flex items-center gap-4 p-4 bg-slate-50 rounded-xl hover:bg-slate-100 transition group"
                 >
                   <div className="w-12 h-12 rounded-lg bg-blue-100 flex items-center justify-center group-hover:bg-blue-200 transition">
@@ -146,7 +158,10 @@ export default function PublicCard({ slug }: PublicCardProps) {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
               <button
-                onClick={() => downloadVCard(card)}
+                onClick={() => {
+                  downloadVCard(card);
+                  trackEvent(card.id, 'vcard_download');
+                }}
                 className="flex items-center justify-center gap-3 bg-blue-600 text-white px-6 py-4 rounded-xl hover:bg-blue-700 transition font-medium"
               >
                 <Download size={22} />
@@ -176,11 +191,24 @@ export default function PublicCard({ slug }: PublicCardProps) {
         </div>
 
         <div className="text-center mt-8">
+          <div className="flex items-center justify-center gap-4 mb-4">
+            <button
+              onClick={() => setShowPrivacySettings(true)}
+              className="flex items-center gap-2 text-slate-500 hover:text-slate-700 text-sm transition"
+            >
+              <Shield size={16} />
+              Privacy Settings
+            </button>
+          </div>
           <p className="text-slate-600 text-sm">
             Powered by <span className="font-semibold">Orvion</span>
           </p>
         </div>
       </div>
+
+      {showPrivacySettings && (
+        <AnalyticsOptOut onClose={() => setShowPrivacySettings(false)} />
+      )}
     </div>
   );
 }

@@ -2,9 +2,10 @@ import { useEffect, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { BusinessCard } from '../lib/firebase';
 import { getBusinessCardsByUser, deleteBusinessCard } from '../services/firestore';
-import { LogOut, Plus, Edit, Trash2, Eye, QrCode } from 'lucide-react';
+import { LogOut, Plus, Edit, Trash2, Eye, QrCode, BarChart3 } from 'lucide-react';
 import CardForm from './CardForm';
 import CardPreview from './CardPreview';
+import AnalyticsDashboard from './AnalyticsDashboard';
 
 export default function Dashboard() {
   const { user, signOut } = useAuth();
@@ -13,6 +14,7 @@ export default function Dashboard() {
   const [showForm, setShowForm] = useState(false);
   const [editingCard, setEditingCard] = useState<BusinessCard | null>(null);
   const [previewCard, setPreviewCard] = useState<BusinessCard | null>(null);
+  const [analyticsCard, setAnalyticsCard] = useState<BusinessCard | null>(null);
 
   useEffect(() => {
     loadCards();
@@ -67,6 +69,10 @@ export default function Dashboard() {
 
   if (previewCard) {
     return <CardPreview card={previewCard} onClose={() => setPreviewCard(null)} />;
+  }
+
+  if (analyticsCard) {
+    return <AnalyticsDashboard card={analyticsCard} onClose={() => setAnalyticsCard(null)} />;
   }
 
   return (
@@ -174,20 +180,27 @@ export default function Dashboard() {
                       Edit
                     </button>
                     <button
+                      onClick={() => setAnalyticsCard(card)}
+                      className="flex items-center justify-center gap-2 px-3 py-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition text-sm"
+                    >
+                      <BarChart3 size={16} />
+                      Analytics
+                    </button>
+                    <button
                       onClick={() => window.open(`/c/${card.slug}`, '_blank')}
                       className="flex items-center justify-center gap-2 px-3 py-2 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 transition text-sm"
                     >
                       <QrCode size={16} />
                       QR
                     </button>
-                    <button
-                      onClick={() => handleDelete(card.id)}
-                      className="flex items-center justify-center gap-2 px-3 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition text-sm"
-                    >
-                      <Trash2 size={16} />
-                      Delete
-                    </button>
                   </div>
+                  <button
+                    onClick={() => handleDelete(card.id)}
+                    className="w-full mt-2 flex items-center justify-center gap-2 px-3 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition text-sm"
+                  >
+                    <Trash2 size={16} />
+                    Delete Card
+                  </button>
                 </div>
               </div>
             ))}
