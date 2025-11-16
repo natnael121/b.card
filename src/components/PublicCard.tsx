@@ -5,6 +5,7 @@ import { Download, QrCode, Mail, Phone, Globe, MapPin, Shield, Share2, Linkedin,
 import { downloadVCard } from '../lib/vcard';
 import { generateQRCodeURL } from '../lib/qrcode';
 import { trackEvent } from '../services/analytics';
+import { getThemeById } from '../lib/themes';
 import AnalyticsOptOut from './AnalyticsOptOut';
 import ContactShareForm from './ContactShareForm';
 
@@ -74,12 +75,13 @@ export default function PublicCard({ slug }: PublicCardProps) {
   }
 
   const cardURL = `${window.location.origin}/c/${card.slug}`;
+  const theme = getThemeById(card.theme_id || 'modern-blue');
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-slate-100 py-12 px-4">
+    <div className={`min-h-screen ${theme.styles.pageBackground} py-12 px-4`}>
       <div className="max-w-2xl mx-auto">
-        <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
-          <div className="bg-gradient-to-r from-blue-600 to-blue-700 h-32"></div>
+        <div className={theme.styles.cardContainer + ' overflow-hidden'}>
+          <div className={theme.styles.header}></div>
 
           <div className="px-8 pb-8">
             <div className="text-center -mt-16 mb-6">
@@ -87,24 +89,24 @@ export default function PublicCard({ slug }: PublicCardProps) {
                 <img
                   src={card.avatar_url}
                   alt={card.full_name}
-                  className="w-32 h-32 rounded-full object-cover mx-auto border-4 border-white shadow-lg"
+                  className={theme.styles.avatar + ' mx-auto'}
                 />
               ) : (
-                <div className="w-32 h-32 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white text-4xl font-bold mx-auto border-4 border-white shadow-lg">
+                <div className={theme.styles.avatarFallback + ' mx-auto'}>
                   {card.full_name.charAt(0)}
                 </div>
               )}
             </div>
 
             <div className="text-center mb-8">
-              <h1 className="text-4xl font-bold text-slate-900 mb-2">{card.full_name}</h1>
-              {card.title && <p className="text-xl text-slate-600 mb-1">{card.title}</p>}
-              {card.company && <p className="text-xl text-slate-500">{card.company}</p>}
+              <h1 className={theme.styles.title + ' mb-2'}>{card.full_name}</h1>
+              {card.title && <p className={theme.styles.subtitle + ' mb-1'}>{card.title}</p>}
+              {card.company && <p className={theme.styles.subtitle}>{card.company}</p>}
             </div>
 
             {card.bio && (
-              <div className="mb-8 p-6 bg-slate-50 rounded-xl">
-                <p className="text-slate-700 leading-relaxed text-center">{card.bio}</p>
+              <div className={theme.styles.bioContainer + ' mb-8'}>
+                <p className={theme.styles.bioText}>{card.bio}</p>
               </div>
             )}
 
@@ -113,14 +115,14 @@ export default function PublicCard({ slug }: PublicCardProps) {
                 <a
                   href={`mailto:${card.email}`}
                   onClick={() => trackEvent(card.id, 'email_click').catch(err => console.error('Failed to track email click:', err))}
-                  className="flex items-center gap-4 p-4 bg-slate-50 rounded-xl hover:bg-slate-100 transition group"
+                  className={`${theme.styles.contactItem} ${theme.styles.contactItemHover}`}
                 >
-                  <div className="w-12 h-12 rounded-lg bg-blue-100 flex items-center justify-center group-hover:bg-blue-200 transition">
-                    <Mail size={24} className="text-blue-600" />
+                  <div className={`${theme.styles.contactIcon} ${theme.styles.contactIconHover}`}>
+                    <Mail size={24} />
                   </div>
                   <div className="flex-1">
-                    <p className="text-xs font-medium text-slate-500 uppercase">Email</p>
-                    <p className="text-slate-900">{card.email}</p>
+                    <p className={theme.styles.contactLabel}>Email</p>
+                    <p className={theme.styles.contactValue}>{card.email}</p>
                   </div>
                 </a>
               )}
@@ -129,14 +131,14 @@ export default function PublicCard({ slug }: PublicCardProps) {
                 <a
                   href={`tel:${card.phone}`}
                   onClick={() => trackEvent(card.id, 'phone_click').catch(err => console.error('Failed to track phone click:', err))}
-                  className="flex items-center gap-4 p-4 bg-slate-50 rounded-xl hover:bg-slate-100 transition group"
+                  className={`${theme.styles.contactItem} ${theme.styles.contactItemHover}`}
                 >
-                  <div className="w-12 h-12 rounded-lg bg-blue-100 flex items-center justify-center group-hover:bg-blue-200 transition">
-                    <Phone size={24} className="text-blue-600" />
+                  <div className={`${theme.styles.contactIcon} ${theme.styles.contactIconHover}`}>
+                    <Phone size={24} />
                   </div>
                   <div className="flex-1">
-                    <p className="text-xs font-medium text-slate-500 uppercase">Phone</p>
-                    <p className="text-slate-900">{card.phone}</p>
+                    <p className={theme.styles.contactLabel}>Phone</p>
+                    <p className={theme.styles.contactValue}>{card.phone}</p>
                   </div>
                 </a>
               )}
@@ -147,26 +149,26 @@ export default function PublicCard({ slug }: PublicCardProps) {
                   target="_blank"
                   rel="noopener noreferrer"
                   onClick={() => trackEvent(card.id, 'website_click').catch(err => console.error('Failed to track website click:', err))}
-                  className="flex items-center gap-4 p-4 bg-slate-50 rounded-xl hover:bg-slate-100 transition group"
+                  className={`${theme.styles.contactItem} ${theme.styles.contactItemHover}`}
                 >
-                  <div className="w-12 h-12 rounded-lg bg-blue-100 flex items-center justify-center group-hover:bg-blue-200 transition">
-                    <Globe size={24} className="text-blue-600" />
+                  <div className={`${theme.styles.contactIcon} ${theme.styles.contactIconHover}`}>
+                    <Globe size={24} />
                   </div>
                   <div className="flex-1">
-                    <p className="text-xs font-medium text-slate-500 uppercase">Website</p>
-                    <p className="text-slate-900 truncate">{card.website}</p>
+                    <p className={theme.styles.contactLabel}>Website</p>
+                    <p className={`${theme.styles.contactValue} truncate`}>{card.website}</p>
                   </div>
                 </a>
               )}
 
               {card.address && (
-                <div className="flex items-center gap-4 p-4 bg-slate-50 rounded-xl">
-                  <div className="w-12 h-12 rounded-lg bg-blue-100 flex items-center justify-center">
-                    <MapPin size={24} className="text-blue-600" />
+                <div className={theme.styles.contactItem}>
+                  <div className={theme.styles.contactIcon}>
+                    <MapPin size={24} />
                   </div>
                   <div className="flex-1">
-                    <p className="text-xs font-medium text-slate-500 uppercase">Address</p>
-                    <p className="text-slate-900">{card.address}</p>
+                    <p className={theme.styles.contactLabel}>Address</p>
+                    <p className={theme.styles.contactValue}>{card.address}</p>
                   </div>
                 </div>
               )}
@@ -174,7 +176,7 @@ export default function PublicCard({ slug }: PublicCardProps) {
 
             {card.social_media && card.social_media.length > 0 && (
               <div className="mb-8">
-                <h3 className="text-sm font-semibold text-slate-700 uppercase tracking-wide mb-4 text-center">
+                <h3 className={theme.styles.contactLabel + ' mb-4 text-center'}>
                   Connect on Social Media
                 </h3>
                 <div className="flex flex-wrap justify-center gap-3">
@@ -186,11 +188,11 @@ export default function PublicCard({ slug }: PublicCardProps) {
                         href={social.url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex items-center gap-2 px-4 py-3 bg-slate-50 hover:bg-slate-100 rounded-lg transition group border border-slate-200"
+                        className={`${theme.styles.socialButton} ${theme.styles.socialButtonHover}`}
                         title={social.platform}
                       >
-                        <Icon size={20} className="text-blue-600 group-hover:scale-110 transition" />
-                        <span className="text-sm font-medium text-slate-700">{social.platform}</span>
+                        <Icon size={20} className="group-hover:scale-110 transition" />
+                        <span className="text-sm font-medium">{social.platform}</span>
                       </a>
                     );
                   })}
@@ -210,7 +212,7 @@ export default function PublicCard({ slug }: PublicCardProps) {
               )}
               <button
                 onClick={() => setShowQR(!showQR)}
-                className="flex items-center justify-center gap-3 bg-slate-600 text-white px-6 py-4 rounded-xl hover:bg-slate-700 transition font-medium"
+                className={`${theme.styles.actionButton} ${theme.styles.actionButtonHover}`}
               >
                 <QrCode size={22} />
                 {showQR ? 'Hide QR Code' : 'Show QR Code'}
@@ -218,14 +220,14 @@ export default function PublicCard({ slug }: PublicCardProps) {
             </div>
 
             {showQR && (
-              <div className="text-center p-8 bg-slate-50 rounded-xl">
+              <div className={`text-center ${theme.styles.qrContainer}`}>
                 <img
                   src={generateQRCodeURL(cardURL)}
                   alt="QR Code"
                   className="mx-auto mb-4 rounded-lg shadow-md"
                 />
-                <p className="text-sm font-medium text-slate-700 mb-2">Share this card</p>
-                <p className="text-xs text-slate-500 break-all">{cardURL}</p>
+                <p className={`${theme.styles.contactValue} mb-2 font-medium`}>Share this card</p>
+                <p className={`${theme.styles.contactLabel} break-all`}>{cardURL}</p>
               </div>
             )}
           </div>

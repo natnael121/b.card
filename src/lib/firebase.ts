@@ -44,6 +44,7 @@ export type BusinessCard = {
   bio: string | null;
   avatar_url: string | null;
   social_media: SocialMedia[];
+  theme_id: string;
   allow_contact_sharing: boolean;
   is_active: boolean;
   created_at: string;

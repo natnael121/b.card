@@ -39,7 +39,16 @@ export async function getBusinessCardsByUser(userId: string): Promise<BusinessCa
   );
 
   const snapshot = await getDocs(q);
-  const cards = snapshot.docs.map(doc => doc.data() as BusinessCard);
+  const cards = snapshot.docs.map(doc => {
+    const card = doc.data() as BusinessCard;
+    if (!card.theme_id) {
+      card.theme_id = 'modern-blue';
+      updateBusinessCard(card.id, { theme_id: 'modern-blue' }).catch(err =>
+        console.error('Failed to update theme_id:', err)
+      );
+    }
+    return card;
+  });
 
   return cards.sort((a, b) => {
     return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
@@ -60,7 +69,14 @@ export async function getBusinessCardBySlug(slug: string): Promise<BusinessCard 
     return null;
   }
 
-  return snapshot.docs[0].data() as BusinessCard;
+  const card = snapshot.docs[0].data() as BusinessCard;
+
+  if (!card.theme_id) {
+    card.theme_id = 'modern-blue';
+    await updateBusinessCard(card.id, { theme_id: 'modern-blue' });
+  }
+
+  return card;
 }
 
 export async function submitContactShare(

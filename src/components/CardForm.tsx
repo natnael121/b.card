@@ -3,6 +3,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { BusinessCard, SocialMedia } from '../lib/firebase';
 import { createBusinessCard, updateBusinessCard } from '../services/firestore';
 import { X, Save, Plus, Trash2, Linkedin, Twitter, Facebook, Instagram, Github, Youtube, MessageCircle } from 'lucide-react';
+import ThemeSelector from './ThemeSelector';
 
 interface CardFormProps {
   card: BusinessCard | null;
@@ -23,7 +24,7 @@ export default function CardForm({ card, onClose }: CardFormProps) {
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [activeTab, setActiveTab] = useState<'basic' | 'social' | 'settings'>('basic');
+  const [activeTab, setActiveTab] = useState<'basic' | 'social' | 'theme' | 'settings'>('basic');
   const [formData, setFormData] = useState({
     slug: '',
     full_name: '',
@@ -36,6 +37,7 @@ export default function CardForm({ card, onClose }: CardFormProps) {
     bio: '',
     avatar_url: '',
     social_media: [] as SocialMedia[],
+    theme_id: 'modern-blue',
     allow_contact_sharing: false,
     is_active: true,
   });
@@ -54,6 +56,7 @@ export default function CardForm({ card, onClose }: CardFormProps) {
         bio: card.bio || '',
         avatar_url: card.avatar_url || '',
         social_media: card.social_media || [],
+        theme_id: card.theme_id || 'modern-blue',
         allow_contact_sharing: card.allow_contact_sharing || false,
         is_active: card.is_active,
       });
@@ -107,6 +110,7 @@ export default function CardForm({ card, onClose }: CardFormProps) {
         bio: formData.bio || null,
         avatar_url: formData.avatar_url || null,
         social_media: formData.social_media.filter(sm => sm.url.trim() !== ''),
+        theme_id: formData.theme_id,
         allow_contact_sharing: formData.allow_contact_sharing,
         is_active: formData.is_active,
       };
@@ -173,6 +177,17 @@ export default function CardForm({ card, onClose }: CardFormProps) {
                 }`}
               >
                 Social Media
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab('theme')}
+                className={`px-6 py-4 font-medium transition border-b-2 ${
+                  activeTab === 'theme'
+                    ? 'border-blue-600 text-blue-600'
+                    : 'border-transparent text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                Theme
               </button>
               <button
                 type="button"
@@ -426,6 +441,13 @@ export default function CardForm({ card, onClose }: CardFormProps) {
                     </div>
                   )}
                 </div>
+              )}
+
+              {activeTab === 'theme' && (
+                <ThemeSelector
+                  selectedThemeId={formData.theme_id}
+                  onThemeSelect={(themeId) => setFormData({ ...formData, theme_id: themeId })}
+                />
               )}
 
               {activeTab === 'settings' && (
