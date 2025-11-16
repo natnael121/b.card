@@ -2,10 +2,13 @@ import { useEffect, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { BusinessCard } from '../lib/firebase';
 import { getBusinessCardsByUser, deleteBusinessCard } from '../services/firestore';
-import { LogOut, Plus, Edit, Trash2, Eye, QrCode, BarChart3 } from 'lucide-react';
+import { Plus, Edit, Trash2, Eye, QrCode, BarChart3 } from 'lucide-react';
 import CardForm from './CardForm';
 import CardPreview from './CardPreview';
 import AnalyticsDashboard from './AnalyticsDashboard';
+import Sidebar from './Sidebar';
+import Settings from './Settings';
+import AnalyticsOverview from './AnalyticsOverview';
 
 export default function Dashboard() {
   const { user, signOut } = useAuth();
@@ -15,6 +18,7 @@ export default function Dashboard() {
   const [editingCard, setEditingCard] = useState<BusinessCard | null>(null);
   const [previewCard, setPreviewCard] = useState<BusinessCard | null>(null);
   const [analyticsCard, setAnalyticsCard] = useState<BusinessCard | null>(null);
+  const [activeView, setActiveView] = useState<'cards' | 'analytics' | 'settings'>('cards');
 
   useEffect(() => {
     loadCards();
@@ -76,50 +80,41 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-slate-100">
-      <nav className="bg-white border-b border-slate-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div>
-              <h1 className="text-2xl font-bold text-slate-900">Orvion</h1>
-              <p className="text-sm text-slate-600">{user?.email}</p>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-slate-100 flex">
+      <Sidebar
+        activeView={activeView}
+        onViewChange={setActiveView}
+        userEmail={user?.email}
+        onSignOut={signOut}
+      />
+
+      <main className="flex-1 overflow-auto pt-16 lg:pt-0">
+        {activeView === 'cards' && (
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div className="flex justify-between items-center mb-8">
+              <h2 className="text-3xl font-bold text-slate-900">My Business Cards</h2>
+              <button
+                onClick={() => setShowForm(true)}
+                className="flex items-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition"
+              >
+                <Plus size={20} />
+                Create New Card
+              </button>
             </div>
-            <button
-              onClick={signOut}
-              className="flex items-center gap-2 px-4 py-2 text-slate-700 hover:text-slate-900 transition"
-            >
-              <LogOut size={20} />
-              Sign Out
-            </button>
-          </div>
-        </div>
-      </nav>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex justify-between items-center mb-8">
-          <h2 className="text-3xl font-bold text-slate-900">My Business Cards</h2>
-          <button
-            onClick={() => setShowForm(true)}
-            className="flex items-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition"
-          >
-            <Plus size={20} />
-            Create New Card
-          </button>
-        </div>
-
-        {cards.length === 0 ? (
-          <div className="bg-white rounded-xl shadow-sm p-12 text-center">
-            <p className="text-slate-600 mb-4">You haven't created any business cards yet.</p>
-            <button
-              onClick={() => setShowForm(true)}
-              className="inline-flex items-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition"
-            >
-              <Plus size={20} />
-              Create Your First Card
-            </button>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {cards.length === 0 ? (
+              <div className="bg-white rounded-xl shadow-sm p-12 text-center">
+                <p className="text-slate-600 mb-4">You haven't created any business cards yet.</p>
+                <button
+                  onClick={() => setShowForm(true)}
+                  className="inline-flex items-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition"
+                >
+                  <Plus size={20} />
+                  Create Your First Card
+                </button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {cards.map((card) => (
               <div
                 key={card.id}
@@ -204,7 +199,17 @@ export default function Dashboard() {
                 </div>
               </div>
             ))}
+            </div>
+            )}
           </div>
+        )}
+
+        {activeView === 'analytics' && user && (
+          <AnalyticsOverview userId={user.uid} />
+        )}
+
+        {activeView === 'settings' && (
+          <Settings onSignOut={signOut} />
         )}
       </main>
     </div>
