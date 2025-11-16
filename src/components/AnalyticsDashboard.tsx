@@ -6,7 +6,7 @@ import { X, TrendingUp, Users, Download, Mail, Phone, Globe, MapPin, Monitor, Sm
 interface AnalyticsDashboardProps {
   card: BusinessCard;
   onClose: () => void;
-}
+} 
 
 export default function AnalyticsDashboard({ card, onClose }: AnalyticsDashboardProps) {
   const [stats, setStats] = useState<AnalyticsStats | null>(null);
