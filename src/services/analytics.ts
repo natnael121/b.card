@@ -97,6 +97,7 @@ export async function trackEvent(
   eventType: AnalyticsEvent['event_type']
 ): Promise<void> {
   if (!shouldTrack()) {
+    console.log('Analytics tracking disabled');
     return;
   }
 
@@ -114,10 +115,13 @@ export async function trackEvent(
       ...utmParams,
     };
 
+    console.log('Tracking event:', event);
     const analyticsRef = collection(db, 'analytics_events');
-    await addDoc(analyticsRef, event);
+    const docRef = await addDoc(analyticsRef, event);
+    console.log('Event tracked successfully:', docRef.id);
   } catch (error) {
     console.error('Error tracking event:', error);
+    throw error;
   }
 }
 

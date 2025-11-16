@@ -38,7 +38,7 @@ export default function PublicCard({ slug }: PublicCardProps) {
 
   useEffect(() => {
     if (card) {
-      trackEvent(card.id, 'visit');
+      trackEvent(card.id, 'visit').catch(err => console.error('Failed to track visit:', err));
     }
   }, [card]);
 
@@ -111,7 +111,7 @@ export default function PublicCard({ slug }: PublicCardProps) {
               {card.email && (
                 <a
                   href={`mailto:${card.email}`}
-                  onClick={() => trackEvent(card.id, 'email_click')}
+                  onClick={() => trackEvent(card.id, 'email_click').catch(err => console.error('Failed to track email click:', err))}
                   className="flex items-center gap-4 p-4 bg-slate-50 rounded-xl hover:bg-slate-100 transition group"
                 >
                   <div className="w-12 h-12 rounded-lg bg-blue-100 flex items-center justify-center group-hover:bg-blue-200 transition">
@@ -127,7 +127,7 @@ export default function PublicCard({ slug }: PublicCardProps) {
               {card.phone && (
                 <a
                   href={`tel:${card.phone}`}
-                  onClick={() => trackEvent(card.id, 'phone_click')}
+                  onClick={() => trackEvent(card.id, 'phone_click').catch(err => console.error('Failed to track phone click:', err))}
                   className="flex items-center gap-4 p-4 bg-slate-50 rounded-xl hover:bg-slate-100 transition group"
                 >
                   <div className="w-12 h-12 rounded-lg bg-blue-100 flex items-center justify-center group-hover:bg-blue-200 transition">
@@ -145,7 +145,7 @@ export default function PublicCard({ slug }: PublicCardProps) {
                   href={card.website}
                   target="_blank"
                   rel="noopener noreferrer"
-                  onClick={() => trackEvent(card.id, 'website_click')}
+                  onClick={() => trackEvent(card.id, 'website_click').catch(err => console.error('Failed to track website click:', err))}
                   className="flex items-center gap-4 p-4 bg-slate-50 rounded-xl hover:bg-slate-100 transition group"
                 >
                   <div className="w-12 h-12 rounded-lg bg-blue-100 flex items-center justify-center group-hover:bg-blue-200 transition">
@@ -201,7 +201,7 @@ export default function PublicCard({ slug }: PublicCardProps) {
               <button
                 onClick={() => {
                   downloadVCard(card);
-                  trackEvent(card.id, 'vcard_download');
+                  trackEvent(card.id, 'vcard_download').catch(err => console.error('Failed to track vcard download:', err));
                 }}
                 className="flex items-center justify-center gap-3 bg-blue-600 text-white px-6 py-4 rounded-xl hover:bg-blue-700 transition font-medium"
               >
