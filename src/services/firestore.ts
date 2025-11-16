@@ -83,8 +83,7 @@ export async function getContactSharesByCard(cardId: string): Promise<ContactSha
   const contactsRef = collection(db, 'contact_shares');
   const q = query(
     contactsRef,
-    where('card_id', '==', cardId),
-    orderBy('created_at', 'desc')
+    where('card_id', '==', cardId)
   );
 
   const snapshot = await getDocs(q);
@@ -93,7 +92,9 @@ export async function getContactSharesByCard(cardId: string): Promise<ContactSha
     ...doc.data()
   } as ContactShare));
 
-  return contacts;
+  return contacts.sort((a, b) => {
+    return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+  });
 }
 
 export async function getContactSharesByUser(userId: string): Promise<ContactShare[]> {
@@ -107,18 +108,26 @@ export async function getContactSharesByUser(userId: string): Promise<ContactSha
     return [];
   }
 
-  const contactsRef = collection(db, 'contact_shares');
-  const contactsQuery = query(
-    contactsRef,
-    where('card_id', 'in', cardIds.slice(0, 10)),
-    orderBy('created_at', 'desc')
-  );
+  const allContacts: ContactShare[] = [];
 
-  const contactsSnapshot = await getDocs(contactsQuery);
-  const contacts = contactsSnapshot.docs.map(doc => ({
-    id: doc.id,
-    ...doc.data()
-  } as ContactShare));
+  for (let i = 0; i < cardIds.length; i += 10) {
+    const batch = cardIds.slice(i, i + 10);
+    const contactsRef = collection(db, 'contact_shares');
+    const contactsQuery = query(
+      contactsRef,
+      where('card_id', 'in', batch)
+    );
 
-  return contacts;
+    const contactsSnapshot = await getDocs(contactsQuery);
+    const contacts = contactsSnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    } as ContactShare));
+
+    allContacts.push(...contacts);
+  }
+
+  return allContacts.sort((a, b) => {
+    return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+  });
 }

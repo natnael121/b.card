@@ -126,15 +126,16 @@ export async function getCardAnalytics(cardId: string): Promise<AnalyticsStats> 
     const analyticsRef = collection(db, 'analytics_events');
     const q = query(
       analyticsRef,
-      where('card_id', '==', cardId),
-      orderBy('timestamp', 'desc')
+      where('card_id', '==', cardId)
     );
 
     const snapshot = await getDocs(q);
     const events = snapshot.docs.map(doc => ({
       id: doc.id,
       ...doc.data()
-    } as AnalyticsEvent));
+    } as AnalyticsEvent)).sort((a, b) => {
+      return new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime();
+    });
 
     const visits = events.filter(e => e.event_type === 'visit');
     const uniqueVisitors = new Set(events.map(e => e.user_agent)).size;
