@@ -1,5 +1,5 @@
-import { collection, doc, setDoc, getDoc, getDocs, query, where, orderBy, deleteDoc, Timestamp } from 'firebase/firestore';
-import { db, BusinessCard } from '../lib/firebase';
+import { collection, doc, setDoc, getDoc, getDocs, query, where, orderBy, deleteDoc, Timestamp, addDoc } from 'firebase/firestore';
+import { db, BusinessCard, ContactShare } from '../lib/firebase';
 
 export async function createBusinessCard(userId: string, cardData: Omit<BusinessCard, 'id' | 'created_at' | 'updated_at'>) {
   const cardsRef = collection(db, 'business_cards');
@@ -61,4 +61,64 @@ export async function getBusinessCardBySlug(slug: string): Promise<BusinessCard 
   }
 
   return snapshot.docs[0].data() as BusinessCard;
+}
+
+export async function submitContactShare(
+  cardId: string,
+  contactData: Omit<ContactShare, 'id' | 'card_id' | 'created_at'>
+) {
+  const contactsRef = collection(db, 'contact_shares');
+
+  const contact: Omit<ContactShare, 'id'> = {
+    card_id: cardId,
+    ...contactData,
+    created_at: new Date().toISOString(),
+  };
+
+  const docRef = await addDoc(contactsRef, contact);
+  return { ...contact, id: docRef.id };
+}
+
+export async function getContactSharesByCard(cardId: string): Promise<ContactShare[]> {
+  const contactsRef = collection(db, 'contact_shares');
+  const q = query(
+    contactsRef,
+    where('card_id', '==', cardId),
+    orderBy('created_at', 'desc')
+  );
+
+  const snapshot = await getDocs(q);
+  const contacts = snapshot.docs.map(doc => ({
+    id: doc.id,
+    ...doc.data()
+  } as ContactShare));
+
+  return contacts;
+}
+
+export async function getContactSharesByUser(userId: string): Promise<ContactShare[]> {
+  const cardsRef = collection(db, 'business_cards');
+  const cardsQuery = query(cardsRef, where('user_id', '==', userId));
+  const cardsSnapshot = await getDocs(cardsQuery);
+
+  const cardIds = cardsSnapshot.docs.map(doc => doc.id);
+
+  if (cardIds.length === 0) {
+    return [];
+  }
+
+  const contactsRef = collection(db, 'contact_shares');
+  const contactsQuery = query(
+    contactsRef,
+    where('card_id', 'in', cardIds.slice(0, 10)),
+    orderBy('created_at', 'desc')
+  );
+
+  const contactsSnapshot = await getDocs(contactsQuery);
+  const contacts = contactsSnapshot.docs.map(doc => ({
+    id: doc.id,
+    ...doc.data()
+  } as ContactShare));
+
+  return contacts;
 }

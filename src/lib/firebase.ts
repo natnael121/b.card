@@ -25,6 +25,11 @@ export type Profile = {
   updated_at: string;
 };
 
+export type SocialMedia = {
+  platform: string;
+  url: string;
+};
+
 export type BusinessCard = {
   id: string;
   user_id: string;
@@ -38,7 +43,20 @@ export type BusinessCard = {
   address: string | null;
   bio: string | null;
   avatar_url: string | null;
+  social_media: SocialMedia[];
+  allow_contact_sharing: boolean;
   is_active: boolean;
   created_at: string;
   updated_at: string;
+};
+
+export type ContactShare = {
+  id: string;
+  card_id: string;
+  visitor_name: string;
+  visitor_email: string;
+  visitor_phone: string | null;
+  visitor_company: string | null;
+  visitor_notes: string | null;
+  created_at: string;
 };

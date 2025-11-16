@@ -1,21 +1,36 @@
 import { useEffect, useState } from 'react';
 import { BusinessCard } from '../lib/firebase';
 import { getBusinessCardBySlug } from '../services/firestore';
-import { Download, QrCode, Mail, Phone, Globe, MapPin, Shield } from 'lucide-react';
+import { Download, QrCode, Mail, Phone, Globe, MapPin, Shield, Share2, Linkedin, Twitter, Facebook, Instagram, Github, Youtube, MessageCircle } from 'lucide-react';
 import { downloadVCard } from '../lib/vcard';
 import { generateQRCodeURL } from '../lib/qrcode';
 import { trackEvent } from '../services/analytics';
 import AnalyticsOptOut from './AnalyticsOptOut';
+import ContactShareForm from './ContactShareForm';
 
 interface PublicCardProps {
   slug: string;
 }
+
+const getSocialIcon = (platform: string) => {
+  switch (platform) {
+    case 'LinkedIn': return Linkedin;
+    case 'Twitter': return Twitter;
+    case 'Facebook': return Facebook;
+    case 'Instagram': return Instagram;
+    case 'GitHub': return Github;
+    case 'YouTube': return Youtube;
+    case 'WhatsApp': return MessageCircle;
+    default: return Globe;
+  }
+};
 
 export default function PublicCard({ slug }: PublicCardProps) {
   const [card, setCard] = useState<BusinessCard | null>(null);
   const [loading, setLoading] = useState(true);
   const [showQR, setShowQR] = useState(false);
   const [showPrivacySettings, setShowPrivacySettings] = useState(false);
+  const [showContactShare, setShowContactShare] = useState(false);
 
   useEffect(() => {
     loadCard();
@@ -156,6 +171,32 @@ export default function PublicCard({ slug }: PublicCardProps) {
               )}
             </div>
 
+            {card.social_media && card.social_media.length > 0 && (
+              <div className="mb-8">
+                <h3 className="text-sm font-semibold text-slate-700 uppercase tracking-wide mb-4 text-center">
+                  Connect on Social Media
+                </h3>
+                <div className="flex flex-wrap justify-center gap-3">
+                  {card.social_media.map((social, index) => {
+                    const Icon = getSocialIcon(social.platform);
+                    return (
+                      <a
+                        key={index}
+                        href={social.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-2 px-4 py-3 bg-slate-50 hover:bg-slate-100 rounded-lg transition group border border-slate-200"
+                        title={social.platform}
+                      >
+                        <Icon size={20} className="text-blue-600 group-hover:scale-110 transition" />
+                        <span className="text-sm font-medium text-slate-700">{social.platform}</span>
+                      </a>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
               <button
                 onClick={() => {
@@ -167,6 +208,15 @@ export default function PublicCard({ slug }: PublicCardProps) {
                 <Download size={22} />
                 Save Contact
               </button>
+              {card.allow_contact_sharing && (
+                <button
+                  onClick={() => setShowContactShare(true)}
+                  className="flex items-center justify-center gap-3 bg-green-600 text-white px-6 py-4 rounded-xl hover:bg-green-700 transition font-medium"
+                >
+                  <Share2 size={22} />
+                  Share Your Contact
+                </button>
+              )}
               <button
                 onClick={() => setShowQR(!showQR)}
                 className="flex items-center justify-center gap-3 bg-slate-600 text-white px-6 py-4 rounded-xl hover:bg-slate-700 transition font-medium"
@@ -208,6 +258,13 @@ export default function PublicCard({ slug }: PublicCardProps) {
 
       {showPrivacySettings && (
         <AnalyticsOptOut onClose={() => setShowPrivacySettings(false)} />
+      )}
+
+      {showContactShare && (
+        <ContactShareForm
+          card={card}
+          onClose={() => setShowContactShare(false)}
+        />
       )}
     </div>
   );

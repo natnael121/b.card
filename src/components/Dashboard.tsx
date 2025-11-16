@@ -9,6 +9,7 @@ import AnalyticsDashboard from './AnalyticsDashboard';
 import Sidebar from './Sidebar';
 import Settings from './Settings';
 import AnalyticsOverview from './AnalyticsOverview';
+import SharedContacts from './SharedContacts';
 
 export default function Dashboard() {
   const { user, signOut } = useAuth();
@@ -18,7 +19,7 @@ export default function Dashboard() {
   const [editingCard, setEditingCard] = useState<BusinessCard | null>(null);
   const [previewCard, setPreviewCard] = useState<BusinessCard | null>(null);
   const [analyticsCard, setAnalyticsCard] = useState<BusinessCard | null>(null);
-  const [activeView, setActiveView] = useState<'cards' | 'analytics' | 'settings'>('cards');
+  const [activeView, setActiveView] = useState<'cards' | 'analytics' | 'contacts' | 'settings'>('cards');
 
   useEffect(() => {
     loadCards();
@@ -206,6 +207,10 @@ export default function Dashboard() {
 
         {activeView === 'analytics' && user && (
           <AnalyticsOverview userId={user.uid} />
+        )}
+
+        {activeView === 'contacts' && user && (
+          <SharedContacts userId={user.uid} />
         )}
 
         {activeView === 'settings' && (

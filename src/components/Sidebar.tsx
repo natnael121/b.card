@@ -1,9 +1,9 @@
-import { LayoutGrid, BarChart3, Settings, LogOut, Menu, X } from 'lucide-react';
+import { LayoutGrid, BarChart3, Settings, LogOut, Menu, X, Users } from 'lucide-react';
 import { useState } from 'react';
 
 interface SidebarProps {
-  activeView: 'cards' | 'analytics' | 'settings';
-  onViewChange: (view: 'cards' | 'analytics' | 'settings') => void;
+  activeView: 'cards' | 'analytics' | 'contacts' | 'settings';
+  onViewChange: (view: 'cards' | 'analytics' | 'contacts' | 'settings') => void;
   userEmail?: string;
   onSignOut: () => void;
 }
@@ -14,6 +14,7 @@ export default function Sidebar({ activeView, onViewChange, userEmail, onSignOut
   const menuItems = [
     { id: 'cards', label: 'My Cards', icon: LayoutGrid },
     { id: 'analytics', label: 'Analytics', icon: BarChart3 },
+    { id: 'contacts', label: 'Shared Contacts', icon: Users },
     { id: 'settings', label: 'Settings', icon: Settings },
   ];
 
@@ -52,7 +53,7 @@ export default function Sidebar({ activeView, onViewChange, userEmail, onSignOut
                   <button
                     key={item.id}
                     onClick={() => {
-                      onViewChange(item.id as 'cards' | 'analytics' | 'settings');
+                      onViewChange(item.id as 'cards' | 'analytics' | 'contacts' | 'settings');
                       setIsOpen(false);
                     }}
                     className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition ${
