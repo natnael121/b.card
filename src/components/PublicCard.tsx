@@ -42,6 +42,15 @@ export default function PublicCard({ slug }: PublicCardProps) {
     }
   }, [card]);
 
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const shareParam = params.get('share');
+
+    if (shareParam === 'contact' && card?.allow_contact_sharing) {
+      setShowContactShare(true);
+    }
+  }, [card]);
+
   const loadCard = async () => {
     try {
       const data = await getBusinessCardBySlug(slug);
