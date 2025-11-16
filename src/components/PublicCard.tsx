@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { supabase, BusinessCard } from '../lib/supabase';
+import { BusinessCard } from '../lib/firebase';
+import { getBusinessCardBySlug } from '../services/firestore';
 import { Download, QrCode, Mail, Phone, Globe, MapPin } from 'lucide-react';
 import { downloadVCard } from '../lib/vcard';
 import { generateQRCodeURL } from '../lib/qrcode';
@@ -19,14 +20,7 @@ export default function PublicCard({ slug }: PublicCardProps) {
 
   const loadCard = async () => {
     try {
-      const { data, error } = await supabase
-        .from('business_cards')
-        .select('*')
-        .eq('slug', slug)
-        .eq('is_active', true)
-        .maybeSingle();
-
-      if (error) throw error;
+      const data = await getBusinessCardBySlug(slug);
       setCard(data);
     } catch (err) {
       console.error('Error loading card:', err);

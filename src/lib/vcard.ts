@@ -1,4 +1,4 @@
-import { BusinessCard } from './supabase';
+import { BusinessCard } from './firebase';
 
 export function generateVCard(card: BusinessCard): string {
   const lines: string[] = ['BEGIN:VCARD', 'VERSION:3.0'];

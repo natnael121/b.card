@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { supabase, BusinessCard } from '../lib/supabase';
+import { BusinessCard } from '../lib/firebase';
+import { createBusinessCard, updateBusinessCard } from '../services/firestore';
 import { X, Save } from 'lucide-react';
 
 interface CardFormProps {
@@ -62,43 +63,34 @@ export default function CardForm({ card, onClose }: CardFormProps) {
       const slug = formData.slug || generateSlug(formData.full_name);
 
       if (card) {
-        const { error: updateError } = await supabase
-          .from('business_cards')
-          .update({
-            slug,
-            full_name: formData.full_name,
-            title: formData.title || null,
-            company: formData.company || null,
-            email: formData.email || null,
-            phone: formData.phone || null,
-            website: formData.website || null,
-            address: formData.address || null,
-            bio: formData.bio || null,
-            avatar_url: formData.avatar_url || null,
-            is_active: formData.is_active,
-          })
-          .eq('id', card.id);
-
-        if (updateError) throw updateError;
+        await updateBusinessCard(card.id, {
+          slug,
+          full_name: formData.full_name,
+          title: formData.title || null,
+          company: formData.company || null,
+          email: formData.email || null,
+          phone: formData.phone || null,
+          website: formData.website || null,
+          address: formData.address || null,
+          bio: formData.bio || null,
+          avatar_url: formData.avatar_url || null,
+          is_active: formData.is_active,
+        });
       } else {
-        const { error: insertError } = await supabase.from('business_cards').insert([
-          {
-            user_id: user.id,
-            slug,
-            full_name: formData.full_name,
-            title: formData.title || null,
-            company: formData.company || null,
-            email: formData.email || null,
-            phone: formData.phone || null,
-            website: formData.website || null,
-            address: formData.address || null,
-            bio: formData.bio || null,
-            avatar_url: formData.avatar_url || null,
-            is_active: formData.is_active,
-          },
-        ]);
-
-        if (insertError) throw insertError;
+        await createBusinessCard(user.uid, {
+          user_id: user.uid,
+          slug,
+          full_name: formData.full_name,
+          title: formData.title || null,
+          company: formData.company || null,
+          email: formData.email || null,
+          phone: formData.phone || null,
+          website: formData.website || null,
+          address: formData.address || null,
+          bio: formData.bio || null,
+          avatar_url: formData.avatar_url || null,
+          is_active: formData.is_active,
+        });
       }
 
       onClose();

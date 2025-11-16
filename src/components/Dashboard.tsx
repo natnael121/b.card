@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { supabase, BusinessCard } from '../lib/supabase';
+import { BusinessCard } from '../lib/firebase';
+import { getBusinessCardsByUser, deleteBusinessCard } from '../services/firestore';
 import { LogOut, Plus, Edit, Trash2, Eye, QrCode } from 'lucide-react';
 import CardForm from './CardForm';
 import CardPreview from './CardPreview';
@@ -21,14 +22,8 @@ export default function Dashboard() {
     if (!user) return;
 
     try {
-      const { data, error } = await supabase
-        .from('business_cards')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      setCards(data || []);
+      const data = await getBusinessCardsByUser(user.uid);
+      setCards(data);
     } catch (err) {
       console.error('Error loading cards:', err);
     } finally {
@@ -40,8 +35,7 @@ export default function Dashboard() {
     if (!confirm('Are you sure you want to delete this card?')) return;
 
     try {
-      const { error } = await supabase.from('business_cards').delete().eq('id', id);
-      if (error) throw error;
+      await deleteBusinessCard(id);
       await loadCards();
     } catch (err) {
       console.error('Error deleting card:', err);

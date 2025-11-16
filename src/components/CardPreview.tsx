@@ -1,4 +1,4 @@
-import { BusinessCard } from '../lib/supabase';
+import { BusinessCard } from '../lib/firebase';
 import { X, Download, QrCode, Mail, Phone, Globe, MapPin } from 'lucide-react';
 import { downloadVCard } from '../lib/vcard';
 import { generateQRCodeURL } from '../lib/qrcode';
