@@ -35,12 +35,15 @@ export async function getBusinessCardsByUser(userId: string): Promise<BusinessCa
   const cardsRef = collection(db, 'business_cards');
   const q = query(
     cardsRef,
-    where('user_id', '==', userId),
-    orderBy('created_at', 'desc')
+    where('user_id', '==', userId)
   );
 
   const snapshot = await getDocs(q);
-  return snapshot.docs.map(doc => doc.data() as BusinessCard);
+  const cards = snapshot.docs.map(doc => doc.data() as BusinessCard);
+
+  return cards.sort((a, b) => {
+    return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+  });
 }
 
 export async function getBusinessCardBySlug(slug: string): Promise<BusinessCard | null> {
