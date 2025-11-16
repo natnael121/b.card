@@ -1,8 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { BusinessCard, SocialMedia } from '../lib/firebase';
 import { createBusinessCard, updateBusinessCard } from '../services/firestore';
-import { X, Save, Plus, Trash2, Linkedin, Twitter, Facebook, Instagram, Github, Youtube, MessageCircle } from 'lucide-react';
+import { uploadImageToImgBB } from '../services/imgbb';
+import { X, Save, Plus, Trash2, Linkedin, Twitter, Facebook, Instagram, Github, Youtube, MessageCircle, Upload } from 'lucide-react';
 import ThemeSelector from './ThemeSelector';
 
 interface CardFormProps {
@@ -23,8 +24,10 @@ const SOCIAL_PLATFORMS = [
 export default function CardForm({ card, onClose }: CardFormProps) {
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
   const [error, setError] = useState('');
   const [activeTab, setActiveTab] = useState<'basic' | 'social' | 'theme' | 'settings'>('basic');
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [formData, setFormData] = useState({
     slug: '',
     full_name: '',
@@ -86,6 +89,33 @@ export default function CardForm({ card, onClose }: CardFormProps) {
   const removeSocialMedia = (index: number) => {
     const updated = formData.social_media.filter((_, i) => i !== index);
     setFormData({ ...formData, social_media: updated });
+  };
+
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      setError('Please select an image file');
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      setError('Image size must be less than 5MB');
+      return;
+    }
+
+    setUploadingImage(true);
+    setError('');
+
+    try {
+      const imageUrl = await uploadImageToImgBB(file);
+      setFormData({ ...formData, avatar_url: imageUrl });
+    } catch (err: unknown) {
+      setError((err as Error).message);
+    } finally {
+      setUploadingImage(false);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -223,15 +253,36 @@ export default function CardForm({ card, onClose }: CardFormProps) {
                         )}
                         <div className="flex-1">
                           <label className="block text-sm font-medium text-slate-700 mb-2">
-                            Avatar URL
+                            Avatar Image
                           </label>
-                          <input
-                            type="url"
-                            value={formData.avatar_url}
-                            onChange={(e) => setFormData({ ...formData, avatar_url: e.target.value })}
-                            placeholder="https://example.com/avatar.jpg"
-                            className="w-full px-4 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
-                          />
+                          <div className="flex gap-3">
+                            <input
+                              type="url"
+                              value={formData.avatar_url}
+                              onChange={(e) => setFormData({ ...formData, avatar_url: e.target.value })}
+                              placeholder="https://example.com/avatar.jpg"
+                              className="flex-1 px-4 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
+                            />
+                            <input
+                              ref={fileInputRef}
+                              type="file"
+                              accept="image/*"
+                              onChange={handleFileSelect}
+                              className="hidden"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => fileInputRef.current?.click()}
+                              disabled={uploadingImage}
+                              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+                            >
+                              <Upload size={18} />
+                              {uploadingImage ? 'Uploading...' : 'Upload'}
+                            </button>
+                          </div>
+                          <p className="text-xs text-slate-500 mt-2">
+                            Upload an image or paste a URL. Max 5MB.
+                          </p>
                         </div>
                       </div>
                     </div>
