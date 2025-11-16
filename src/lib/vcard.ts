@@ -55,9 +55,15 @@ export function downloadVCard(card: BusinessCard): void {
   const url = window.URL.createObjectURL(blob);
   const link = document.createElement('a');
   link.href = url;
-  link.download = `${card.slug}.vcf`;
+  link.download = `${card.full_name.replace(/\s+/g, '_')}.vcf`;
+  link.style.display = 'none';
   document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  window.URL.revokeObjectURL(url);
+
+  setTimeout(() => {
+    link.click();
+    setTimeout(() => {
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    }, 100);
+  }, 0);
 }
