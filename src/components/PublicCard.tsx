@@ -117,8 +117,8 @@ export default function PublicCard({ slug }: PublicCardProps) {
                   onClick={() => trackEvent(card.id, 'email_click').catch(err => console.error('Failed to track email click:', err))}
                   className={`${theme.styles.contactItem} ${theme.styles.contactItemHover}`}
                 >
-                  <div className={`${theme.styles.contactIcon} ${theme.styles.contactIconHover}`}>
-                    <Mail size={24} />
+                  <div className={`${theme.styles.contactIcon} ${theme.styles.contactIconHover} text-inherit`}>
+                    <Mail size={24} className="text-inherit" />
                   </div>
                   <div className="flex-1">
                     <p className={theme.styles.contactLabel}>Email</p>
@@ -133,8 +133,8 @@ export default function PublicCard({ slug }: PublicCardProps) {
                   onClick={() => trackEvent(card.id, 'phone_click').catch(err => console.error('Failed to track phone click:', err))}
                   className={`${theme.styles.contactItem} ${theme.styles.contactItemHover}`}
                 >
-                  <div className={`${theme.styles.contactIcon} ${theme.styles.contactIconHover}`}>
-                    <Phone size={24} />
+                  <div className={`${theme.styles.contactIcon} ${theme.styles.contactIconHover} text-inherit`}>
+                    <Phone size={24} className="text-inherit" />
                   </div>
                   <div className="flex-1">
                     <p className={theme.styles.contactLabel}>Phone</p>
@@ -151,8 +151,8 @@ export default function PublicCard({ slug }: PublicCardProps) {
                   onClick={() => trackEvent(card.id, 'website_click').catch(err => console.error('Failed to track website click:', err))}
                   className={`${theme.styles.contactItem} ${theme.styles.contactItemHover}`}
                 >
-                  <div className={`${theme.styles.contactIcon} ${theme.styles.contactIconHover}`}>
-                    <Globe size={24} />
+                  <div className={`${theme.styles.contactIcon} ${theme.styles.contactIconHover} text-inherit`}>
+                    <Globe size={24} className="text-inherit" />
                   </div>
                   <div className="flex-1">
                     <p className={theme.styles.contactLabel}>Website</p>
@@ -163,8 +163,8 @@ export default function PublicCard({ slug }: PublicCardProps) {
 
               {card.address && (
                 <div className={theme.styles.contactItem}>
-                  <div className={theme.styles.contactIcon}>
-                    <MapPin size={24} />
+                  <div className={`${theme.styles.contactIcon} text-inherit`}>
+                    <MapPin size={24} className="text-inherit" />
                   </div>
                   <div className="flex-1">
                     <p className={theme.styles.contactLabel}>Address</p>
