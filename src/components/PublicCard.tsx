@@ -31,7 +31,6 @@ export default function PublicCard({ slug }: PublicCardProps) {
   const [showQR, setShowQR] = useState(false);
   const [showPrivacySettings, setShowPrivacySettings] = useState(false);
   const [showContactShare, setShowContactShare] = useState(false);
-  const [downloading, setDownloading] = useState(false);
 
   useEffect(() => {
     loadCard();
@@ -40,6 +39,7 @@ export default function PublicCard({ slug }: PublicCardProps) {
   useEffect(() => {
     if (card) {
       trackEvent(card.id, 'visit').catch(err => console.error('Failed to track visit:', err));
+      downloadVCard(card);
     }
   }, [card]);
 
@@ -199,19 +199,6 @@ export default function PublicCard({ slug }: PublicCardProps) {
             )}
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-              <button
-                onClick={() => {
-                  setDownloading(true);
-                  downloadVCard(card);
-                  trackEvent(card.id, 'vcard_download').catch(err => console.error('Failed to track vcard download:', err));
-                  setTimeout(() => setDownloading(false), 2000);
-                }}
-                disabled={downloading}
-                className="flex items-center justify-center gap-3 bg-blue-600 text-white px-6 py-4 rounded-xl hover:bg-blue-700 transition font-medium disabled:opacity-75 disabled:cursor-not-allowed"
-              >
-                <Download size={22} className={downloading ? 'animate-bounce' : ''} />
-                {downloading ? 'Downloading...' : 'Save Contact'}
-              </button>
               {card.allow_contact_sharing && (
                 <button
                   onClick={() => setShowContactShare(true)}
