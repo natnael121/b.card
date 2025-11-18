@@ -1,11 +1,11 @@
-import { collection, addDoc, query, where, getDocs, orderBy, Timestamp } from 'firebase/firestore';
+import { collection, addDoc, query, where, getDocs, Timestamp } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 
 export type AnalyticsEvent = {
   id?: string;
   card_id: string;
   event_type: 'visit' | 'vcard_download' | 'email_click' | 'phone_click' | 'website_click';
-  timestamp: string;
+  timestamp: Timestamp;
   device_type: 'mobile' | 'tablet' | 'desktop' | 'unknown';
   user_agent: string;
   ip_address?: string;
@@ -30,27 +30,16 @@ export type AnalyticsStats = {
   recentEvents: AnalyticsEvent[];
 };
 
+// ---------------- Device & UTM ----------------
 function getDeviceType(): 'mobile' | 'tablet' | 'desktop' | 'unknown' {
   const ua = navigator.userAgent;
-  if (/(tablet|ipad|playbook|silk)|(android(?!.*mobi))/i.test(ua)) {
-    return 'tablet';
-  }
-  if (/Mobile|Android|iP(hone|od)|IEMobile|BlackBerry|Kindle|Silk-Accelerated|(hpw|web)OS|Opera M(obi|ini)/.test(ua)) {
-    return 'mobile';
-  }
-  if (ua) {
-    return 'desktop';
-  }
+  if (/(tablet|ipad|playbook|silk)|(android(?!.*mobi))/i.test(ua)) return 'tablet';
+  if (/Mobile|Android|iP(hone|od)|IEMobile|BlackBerry|Kindle|Silk-Accelerated|(hpw|web)OS|Opera M(obi|ini)/.test(ua)) return 'mobile';
+  if (ua) return 'desktop';
   return 'unknown';
 }
 
-function getUTMParams(): {
-  utm_source?: string;
-  utm_medium?: string;
-  utm_campaign?: string;
-  utm_term?: string;
-  utm_content?: string;
-} {
+function getUTMParams() {
   const params = new URLSearchParams(window.location.search);
   return {
     utm_source: params.get('utm_source') || undefined,
@@ -61,20 +50,14 @@ function getUTMParams(): {
   };
 }
 
+// ---------------- Opt-out Handling ----------------
 function shouldTrack(): boolean {
-  if (navigator.doNotTrack === '1' || (window as unknown as { doNotTrack?: string }).doNotTrack === '1') {
-    return false;
-  }
-
+  if (navigator.doNotTrack === '1') return false;
   const optOut = localStorage.getItem('analytics_opt_out');
-  if (optOut === 'true') {
-    return false;
-  }
-
-  return true;
+  return optOut !== 'true';
 }
 
-export function setAnalyticsOptOut(optOut: boolean): void {
+export function setAnalyticsOptOut(optOut: boolean) {
   localStorage.setItem('analytics_opt_out', optOut.toString());
 }
 
@@ -82,24 +65,20 @@ export function getAnalyticsOptOut(): boolean {
   return localStorage.getItem('analytics_opt_out') === 'true';
 }
 
+// ---------------- IP / Country ----------------
 async function getCountryFromIP(): Promise<string | undefined> {
   try {
-    const response = await fetch('https://ipapi.co/json/');
+    const response = await fetch('https://ipapi.co/json/', { mode: 'cors' });
     const data = await response.json();
     return data.country_name || undefined;
   } catch {
-    return undefined;
+    return undefined; // Fail-safe: do NOT block tracking
   }
 }
 
-export async function trackEvent(
-  cardId: string,
-  eventType: AnalyticsEvent['event_type']
-): Promise<void> {
-  if (!shouldTrack()) {
-    console.log('Analytics tracking disabled');
-    return;
-  }
+// ---------------- Track Event ----------------
+export async function trackEvent(cardId: string, eventType: AnalyticsEvent['event_type']) {
+  if (!shouldTrack()) return console.log('Analytics tracking disabled');
 
   try {
     const utmParams = getUTMParams();
@@ -108,81 +87,66 @@ export async function trackEvent(
     const event: Omit<AnalyticsEvent, 'id'> = {
       card_id: cardId,
       event_type: eventType,
-      timestamp: new Date().toISOString(),
+      timestamp: Timestamp.now(),
       device_type: getDeviceType(),
       user_agent: navigator.userAgent,
       country,
       ...utmParams,
     };
 
-    console.log('Tracking event:', event);
     const analyticsRef = collection(db, 'analytics_events');
     const docRef = await addDoc(analyticsRef, event);
-    console.log('Event tracked successfully:', docRef.id);
+    console.log('Event tracked:', docRef.id);
   } catch (error) {
     console.error('Error tracking event:', error);
-    throw error;
   }
 }
 
+// ---------------- Get Analytics ----------------
 export async function getCardAnalytics(cardId: string): Promise<AnalyticsStats> {
   try {
     const analyticsRef = collection(db, 'analytics_events');
-    const q = query(
-      analyticsRef,
-      where('card_id', '==', cardId)
-    );
-
+    const q = query(analyticsRef, where('card_id', '==', cardId));
     const snapshot = await getDocs(q);
-    const events = snapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data()
-    } as AnalyticsEvent)).sort((a, b) => {
-      return new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime();
-    });
 
-    const visits = events.filter(e => e.event_type === 'visit');
+    const events = snapshot.docs
+      .map(doc => ({ id: doc.id, ...doc.data() } as AnalyticsEvent))
+      .sort((a, b) => b.timestamp.toMillis() - a.timestamp.toMillis());
+
+    const totalVisits = events.filter(e => e.event_type === 'visit').length;
     const uniqueVisitors = new Set(events.map(e => e.user_agent)).size;
     const vCardDownloads = events.filter(e => e.event_type === 'vcard_download').length;
     const emailClicks = events.filter(e => e.event_type === 'email_click').length;
     const phoneClicks = events.filter(e => e.event_type === 'phone_click').length;
     const websiteClicks = events.filter(e => e.event_type === 'website_click').length;
 
-    const locationCounts = events
-      .filter(e => e.country)
-      .reduce((acc, e) => {
+    const topLocations = Object.entries(
+      events.filter(e => e.country).reduce((acc, e) => {
         acc[e.country!] = (acc[e.country!] || 0) + 1;
         return acc;
-      }, {} as Record<string, number>);
+      }, {} as Record<string, number>)
+    ).map(([country, count]) => ({ country, count }))
+     .sort((a, b) => b.count - a.count)
+     .slice(0, 5);
 
-    const topLocations = Object.entries(locationCounts)
-      .map(([country, count]) => ({ country, count }))
-      .sort((a, b) => b.count - a.count)
-      .slice(0, 5);
-
-    const sourceCounts = events
-      .filter(e => e.utm_source)
-      .reduce((acc, e) => {
+    const topSources = Object.entries(
+      events.filter(e => e.utm_source).reduce((acc, e) => {
         acc[e.utm_source!] = (acc[e.utm_source!] || 0) + 1;
         return acc;
-      }, {} as Record<string, number>);
+      }, {} as Record<string, number>)
+    ).map(([source, count]) => ({ source, count }))
+     .sort((a, b) => b.count - a.count)
+     .slice(0, 5);
 
-    const topSources = Object.entries(sourceCounts)
-      .map(([source, count]) => ({ source, count }))
-      .sort((a, b) => b.count - a.count)
-      .slice(0, 5);
-
-    const deviceCounts = events.reduce((acc, e) => {
-      acc[e.device_type] = (acc[e.device_type] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>);
-
-    const deviceBreakdown = Object.entries(deviceCounts)
-      .map(([type, count]) => ({ type, count }))
-      .sort((a, b) => b.count - a.count);
+    const deviceBreakdown = Object.entries(
+      events.reduce((acc, e) => {
+        acc[e.device_type] = (acc[e.device_type] || 0) + 1;
+        return acc;
+      }, {} as Record<string, number>)
+    ).map(([type, count]) => ({ type, count }));
 
     return {
-      totalVisits: visits.length,
+      totalVisits,
       uniqueVisitors,
       vCardDownloads,
       emailClicks,
@@ -194,7 +158,7 @@ export async function getCardAnalytics(cardId: string): Promise<AnalyticsStats> 
       recentEvents: events.slice(0, 10),
     };
   } catch (error) {
-    console.error('Error getting analytics:', error);
+    console.error('Error fetching analytics:', error);
     return {
       totalVisits: 0,
       uniqueVisitors: 0,
