@@ -8,6 +8,7 @@ import { trackEvent } from '../services/analytics';
 import { getThemeById } from '../lib/themes';
 import AnalyticsOptOut from './AnalyticsOptOut';
 import ContactShareForm from './ContactShareForm';
+import SocialShareModal from './SocialShareModal';
 
 interface PublicCardProps {
   slug: string;
@@ -32,6 +33,7 @@ export default function PublicCard({ slug }: PublicCardProps) {
   const [showQR, setShowQR] = useState(false);
   const [showPrivacySettings, setShowPrivacySettings] = useState(false);
   const [showContactShare, setShowContactShare] = useState(false);
+  const [showSocialShare, setShowSocialShare] = useState(false);
 
   useEffect(() => {
     loadCard();
@@ -201,15 +203,13 @@ export default function PublicCard({ slug }: PublicCardProps) {
             )}
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-              {card.allow_contact_sharing && (
-                <button
-                  onClick={() => setShowContactShare(true)}
-                  className="flex items-center justify-center gap-3 bg-green-600 text-white px-6 py-4 rounded-xl hover:bg-green-700 transition font-medium"
-                >
-                  <Share2 size={22} />
-                  Share Your Contact
-                </button>
-              )}
+              <button
+                onClick={() => setShowSocialShare(true)}
+                className={`${theme.styles.actionButton} ${theme.styles.actionButtonHover}`}
+              >
+                <Share2 size={22} />
+                Share Card
+              </button>
               <button
                 onClick={() => setShowQR(!showQR)}
                 className={`${theme.styles.actionButton} ${theme.styles.actionButtonHover}`}
@@ -218,6 +218,16 @@ export default function PublicCard({ slug }: PublicCardProps) {
                 {showQR ? 'Hide QR Code' : 'Show QR Code'}
               </button>
             </div>
+
+            {card.allow_contact_sharing && (
+              <button
+                onClick={() => setShowContactShare(true)}
+                className="w-full flex items-center justify-center gap-3 bg-green-600 text-white px-6 py-4 rounded-xl hover:bg-green-700 transition font-medium mb-6"
+              >
+                <Share2 size={22} />
+                Share Your Contact
+              </button>
+            )}
 
             {showQR && (
               <div className={`text-center ${theme.styles.qrContainer}`}>
@@ -257,6 +267,14 @@ export default function PublicCard({ slug }: PublicCardProps) {
         <ContactShareForm
           card={card}
           onClose={() => setShowContactShare(false)}
+        />
+      )}
+
+      {showSocialShare && (
+        <SocialShareModal
+          card={card}
+          cardURL={cardURL}
+          onClose={() => setShowSocialShare(false)}
         />
       )}
     </div>

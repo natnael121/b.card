@@ -1,8 +1,9 @@
 import { BusinessCard } from '../lib/firebase';
-import { X, Download, QrCode, Mail, Phone, Globe, MapPin } from 'lucide-react';
+import { X, Download, QrCode, Mail, Phone, Globe, MapPin, Share2 } from 'lucide-react';
 import { downloadVCard } from '../lib/vcard';
 import { generateQRCodeURL } from '../lib/qrcode';
 import { useState } from 'react';
+import SocialShareModal from './SocialShareModal';
 
 interface CardPreviewProps {
   card: BusinessCard;
@@ -11,6 +12,7 @@ interface CardPreviewProps {
 
 export default function CardPreview({ card, onClose }: CardPreviewProps) {
   const [showQR, setShowQR] = useState(false);
+  const [showSocialShare, setShowSocialShare] = useState(false);
   const cardURL = `${window.location.origin}/c/${card.slug}`;
 
   return (
@@ -92,20 +94,27 @@ export default function CardPreview({ card, onClose }: CardPreviewProps) {
               )}
             </div>
 
-            <div className="grid grid-cols-2 gap-4 mb-6">
+            <div className="grid grid-cols-3 gap-4 mb-6">
               <button
                 onClick={() => downloadVCard(card)}
-                className="flex items-center justify-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition"
+                className="flex items-center justify-center gap-2 bg-blue-600 text-white px-4 py-3 rounded-lg hover:bg-blue-700 transition"
               >
                 <Download size={20} />
-                Download vCard
+                <span className="hidden sm:inline">Download</span>
+              </button>
+              <button
+                onClick={() => setShowSocialShare(true)}
+                className="flex items-center justify-center gap-2 bg-green-600 text-white px-4 py-3 rounded-lg hover:bg-green-700 transition"
+              >
+                <Share2 size={20} />
+                <span className="hidden sm:inline">Share</span>
               </button>
               <button
                 onClick={() => setShowQR(!showQR)}
-                className="flex items-center justify-center gap-2 bg-slate-600 text-white px-6 py-3 rounded-lg hover:bg-slate-700 transition"
+                className="flex items-center justify-center gap-2 bg-slate-600 text-white px-4 py-3 rounded-lg hover:bg-slate-700 transition"
               >
                 <QrCode size={20} />
-                {showQR ? 'Hide QR' : 'Show QR'}
+                <span className="hidden sm:inline">{showQR ? 'Hide QR' : 'QR Code'}</span>
               </button>
             </div>
 
@@ -123,6 +132,14 @@ export default function CardPreview({ card, onClose }: CardPreviewProps) {
           </div>
         </div>
       </div>
+
+      {showSocialShare && (
+        <SocialShareModal
+          card={card}
+          cardURL={cardURL}
+          onClose={() => setShowSocialShare(false)}
+        />
+      )}
     </div>
   );
 }
