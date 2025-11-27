@@ -84,10 +84,24 @@ export function getAnalyticsOptOut(): boolean {
 
 async function getCountryFromIP(): Promise<string | undefined> {
   try {
-    const response = await fetch('https://ipapi.co/json/');
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 2000);
+
+    const response = await fetch('https://ipapi.co/json/', {
+      signal: controller.signal,
+      method: 'GET'
+    });
+
+    clearTimeout(timeoutId);
+
+    if (!response.ok) {
+      return undefined;
+    }
+
     const data = await response.json();
     return data.country_name || undefined;
-  } catch {
+  } catch (error) {
+    console.log('Country lookup failed (non-critical):', error);
     return undefined;
   }
 }
@@ -103,7 +117,14 @@ export async function trackEvent(
 
   try {
     const utmParams = getUTMParams();
-    const country = await getCountryFromIP();
+
+    let country: string | undefined;
+    try {
+      country = await getCountryFromIP();
+    } catch (ipError) {
+      console.log('Country lookup timeout, continuing without it');
+      country = undefined;
+    }
 
     const event: Omit<AnalyticsEvent, 'id'> = {
       card_id: cardId,
@@ -121,7 +142,6 @@ export async function trackEvent(
     console.log('Event tracked successfully:', docRef.id);
   } catch (error) {
     console.error('Error tracking event:', error);
-    throw error;
   }
 }
 

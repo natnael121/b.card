@@ -41,8 +41,16 @@ export default function PublicCard({ slug }: PublicCardProps) {
 
   useEffect(() => {
     if (card) {
-      trackEvent(card.id, 'visit').catch(err => console.error('Failed to track visit:', err));
-      downloadVCard(card);
+      (async () => {
+        try {
+          await trackEvent(card.id, 'visit');
+          await trackEvent(card.id, 'vcard_download');
+          downloadVCard(card);
+        } catch (err) {
+          console.error('Failed to track events:', err);
+          downloadVCard(card);
+        }
+      })();
     }
   }, [card]);
 
