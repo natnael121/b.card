@@ -40,15 +40,9 @@ export default function PublicCard({ slug }: PublicCardProps) {
   useEffect(() => {
     if (card) {
       trackEvent(card.id, 'visit').catch(err => console.error('Failed to track visit:', err));
+      downloadVCard(card);
     }
   }, [card]);
-
-  const handleDownloadVCard = () => {
-    if (card) {
-      downloadVCard(card);
-      trackEvent(card.id, 'vcard_download').catch(err => console.error('Failed to track download:', err));
-    }
-  };
 
   const loadCard = async () => {
     try {
@@ -207,13 +201,6 @@ export default function PublicCard({ slug }: PublicCardProps) {
             )}
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-              <button
-                onClick={handleDownloadVCard}
-                className={`${theme.styles.actionButton} ${theme.styles.actionButtonHover}`}
-              >
-                <Download size={22} />
-                Save Contact
-              </button>
               {card.allow_contact_sharing && (
                 <button
                   onClick={() => setShowContactShare(true)}
