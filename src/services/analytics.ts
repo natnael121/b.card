@@ -111,18 +111,21 @@ export async function trackEvent(
   eventType: AnalyticsEvent['event_type']
 ): Promise<void> {
   if (!shouldTrack()) {
-    console.log('Analytics tracking disabled');
     return;
   }
 
   try {
-    const utmParams = getUTMParams();
+    console.log(`[Analytics] Starting to track ${eventType} for card ${cardId}`);
 
+    const utmParams = getUTMParams();
     let country: string | undefined;
+
     try {
-      country = await getCountryFromIP();
-    } catch (ipError) {
-      console.log('Country lookup timeout, continuing without it');
+      country = await Promise.race([
+        getCountryFromIP(),
+        new Promise<undefined>((resolve) => setTimeout(() => resolve(undefined), 3000))
+      ]);
+    } catch {
       country = undefined;
     }
 
@@ -136,26 +139,18 @@ export async function trackEvent(
       ...utmParams,
     };
 
-    console.log('Tracking event:', event);
+    console.log(`[Analytics] Prepared event:`, event);
+    console.log(`[Analytics] DB reference exists: ${db ? 'yes' : 'no'}`);
+
     const analyticsRef = collection(db, 'analytics_events');
+    console.log(`[Analytics] Collection reference created`);
 
-    try {
-      const docRef = await addDoc(analyticsRef, event);
-      console.log('Event tracked successfully:', docRef.id);
-    } catch (writeError: any) {
-      console.error('Firebase write error:', {
-        code: writeError.code,
-        message: writeError.message,
-        permission: writeError.code === 'permission-denied' ? 'PERMISSION_DENIED' : 'OTHER'
-      });
+    const docRef = await addDoc(analyticsRef, event);
+    console.log(`[Analytics] SUCCESS - Event saved with ID: ${docRef.id}`);
 
-      if (writeError.code === 'permission-denied') {
-        console.error('Firebase security rules are blocking analytics writes. Check Firestore rules.');
-      }
-      throw writeError;
-    }
-  } catch (error) {
-    console.error('Error tracking event:', error);
+  } catch (error: any) {
+    console.error(`[Analytics] FAILED - ${error?.code || 'unknown'}: ${error?.message || error}`);
+    console.error('[Analytics] Full error:', error);
   }
 }
 
