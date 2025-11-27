@@ -138,8 +138,22 @@ export async function trackEvent(
 
     console.log('Tracking event:', event);
     const analyticsRef = collection(db, 'analytics_events');
-    const docRef = await addDoc(analyticsRef, event);
-    console.log('Event tracked successfully:', docRef.id);
+
+    try {
+      const docRef = await addDoc(analyticsRef, event);
+      console.log('Event tracked successfully:', docRef.id);
+    } catch (writeError: any) {
+      console.error('Firebase write error:', {
+        code: writeError.code,
+        message: writeError.message,
+        permission: writeError.code === 'permission-denied' ? 'PERMISSION_DENIED' : 'OTHER'
+      });
+
+      if (writeError.code === 'permission-denied') {
+        console.error('Firebase security rules are blocking analytics writes. Check Firestore rules.');
+      }
+      throw writeError;
+    }
   } catch (error) {
     console.error('Error tracking event:', error);
   }
