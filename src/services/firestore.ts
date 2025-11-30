@@ -47,6 +47,12 @@ export async function getBusinessCardsByUser(userId: string): Promise<BusinessCa
         console.error('Failed to update theme_id:', err)
       );
     }
+    if (!card.emails) {
+      card.emails = [];
+    }
+    if (!card.phones) {
+      card.phones = [];
+    }
     return card;
   });
 
@@ -74,6 +80,13 @@ export async function getBusinessCardBySlug(slug: string): Promise<BusinessCard 
   if (!card.theme_id) {
     card.theme_id = 'modern-blue';
     await updateBusinessCard(card.id, { theme_id: 'modern-blue' });
+  }
+
+  if (!card.emails) {
+    card.emails = [];
+  }
+  if (!card.phones) {
+    card.phones = [];
   }
 
   return card;

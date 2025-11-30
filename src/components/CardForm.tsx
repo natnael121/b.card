@@ -3,7 +3,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { BusinessCard, SocialMedia } from '../lib/firebase';
 import { createBusinessCard, updateBusinessCard } from '../services/firestore';
 import { uploadImageToImgBB } from '../services/imgbb';
-import { X, Save, Plus, Trash2, Linkedin, Twitter, Facebook, Instagram, Github, Youtube, MessageCircle, Upload } from 'lucide-react';
+import { X, Save, Plus, Trash2, Linkedin, Twitter, Facebook, Instagram, Github, Youtube, MessageCircle, Upload, Video, Send } from 'lucide-react';
 import ThemeSelector from './ThemeSelector';
 
 interface CardFormProps {
@@ -19,6 +19,8 @@ const SOCIAL_PLATFORMS = [
   { name: 'GitHub', icon: Github, placeholder: 'https://github.com/username' },
   { name: 'YouTube', icon: Youtube, placeholder: 'https://youtube.com/@username' },
   { name: 'WhatsApp', icon: MessageCircle, placeholder: 'https://wa.me/1234567890' },
+  { name: 'TikTok', icon: Video, placeholder: 'https://tiktok.com/@username' },
+  { name: 'Telegram', icon: Send, placeholder: 'https://t.me/username' },
 ];
 
 export default function CardForm({ card, onClose }: CardFormProps) {

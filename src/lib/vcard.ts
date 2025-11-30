@@ -44,6 +44,15 @@ export function generateVCard(card: BusinessCard): string {
     lines.push(`PHOTO;VALUE=URI:${card.avatar_url}`);
   }
 
+  if (card.social_media && card.social_media.length > 0) {
+    card.social_media.forEach(social => {
+      if (social.url) {
+        const platform = social.platform.toUpperCase();
+        lines.push(`X-SOCIALPROFILE;TYPE=${platform}:${social.url}`);
+      }
+    });
+  }
+
   lines.push('END:VCARD');
 
   return lines.join('\r\n');

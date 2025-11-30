@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { BusinessCard } from '../lib/firebase';
 import { getBusinessCardBySlug } from '../services/firestore';
-import { Download, QrCode, Mail, Phone, Globe, MapPin, Shield, Share2, Linkedin, Twitter, Facebook, Instagram, Github, Youtube, MessageCircle } from 'lucide-react';
+import { Download, QrCode, Mail, Phone, Globe, MapPin, Shield, Share2, Linkedin, Twitter, Facebook, Instagram, Github, Youtube, MessageCircle, Video, Send } from 'lucide-react';
 import { downloadVCard } from '../lib/vcard';
 import { generateQRCodeURL } from '../lib/qrcode';
 import { trackEvent } from '../services/analytics';
@@ -23,6 +23,8 @@ const getSocialIcon = (platform: string) => {
     case 'GitHub': return Github;
     case 'YouTube': return Youtube;
     case 'WhatsApp': return MessageCircle;
+    case 'TikTok': return Video;
+    case 'Telegram': return Send;
     default: return Globe;
   }
 };

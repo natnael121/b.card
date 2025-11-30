@@ -30,6 +30,12 @@ export type SocialMedia = {
   url: string;
 };
 
+export type ContactInfo = {
+  type: 'work' | 'personal' | 'other';
+  value: string;
+  label?: string;
+};
+
 export type BusinessCard = {
   id: string;
   user_id: string;
@@ -38,7 +44,9 @@ export type BusinessCard = {
   title: string | null;
   company: string | null;
   email: string | null;
+  emails: ContactInfo[];
   phone: string | null;
+  phones: ContactInfo[];
   website: string | null;
   address: string | null;
   bio: string | null;
