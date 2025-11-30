@@ -196,16 +196,16 @@ export default function PublicCard({ slug }: PublicCardProps) {
                     const Icon = getSocialIcon(social.platform);
                     return (
                       <a
-                        key={index}
-                        href={social.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className={`${theme.styles.socialButton} ${theme.styles.socialButtonHover}`}
-                        title={social.platform}
-                      >
-                        <Icon size={20} className="group-hover:scale-110 transition" />
-                        <span className="text-sm font-medium">{social.platform}</span>
-                      </a>
+  key={index}
+  href={social.url}
+  target="_blank"
+  rel="noopener noreferrer"
+  className={`${theme.styles.socialButton} ${theme.styles.socialButtonHover}`}
+  title={social.platform}
+>
+  <Icon size={24} className="group-hover:scale-110 transition" />
+</a>
+
                     );
                   })}
                 </div>
