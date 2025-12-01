@@ -1,6 +1,7 @@
 import jsPDF from 'jspdf';
 import { BusinessCard } from '../../lib/firebase';
 import { PDFTheme } from './index';
+import { generateQRCodeURL } from '../../lib/qrcode';
 
 async function loadImageAsBase64(url: string): Promise<string> {
   try {
@@ -18,6 +19,107 @@ async function loadImageAsBase64(url: string): Promise<string> {
   }
 }
 
+async function addBackSide(pdf: jsPDF, card: BusinessCard, width: number, height: number, theme: PDFTheme): Promise<void> {
+  pdf.addPage();
+
+  const cardURL = `${window.location.origin}/c/${card.slug}`;
+  const qrCodeURL = generateQRCodeURL(cardURL);
+
+  try {
+    const qrImageData = await loadImageAsBase64(qrCodeURL);
+
+    switch (theme) {
+      case 'modern':
+        pdf.setFillColor(59, 130, 246);
+        pdf.rect(0, 0, width, height, 'F');
+
+        if (qrImageData) {
+          const qrSize = 35;
+          const qrX = (width - qrSize) / 2;
+          const qrY = (height - qrSize) / 2 - 5;
+
+          pdf.setFillColor(255, 255, 255);
+          pdf.rect(qrX - 2, qrY - 2, qrSize + 4, qrSize + 4, 'F');
+
+          pdf.addImage(qrImageData, 'PNG', qrX, qrY, qrSize, qrSize);
+        }
+
+        pdf.setFontSize(9);
+        pdf.setFont('helvetica', 'normal');
+        pdf.setTextColor(255, 255, 255);
+        pdf.text('Scan to view digital card', width / 2, height - 8, { align: 'center' });
+        break;
+
+      case 'classic':
+        pdf.setFillColor(248, 250, 252);
+        pdf.rect(0, 0, width, height, 'F');
+
+        pdf.setDrawColor(226, 232, 240);
+        pdf.setLineWidth(0.5);
+        pdf.rect(2, 2, width - 4, height - 4);
+
+        if (qrImageData) {
+          const qrSize = 35;
+          const qrX = (width - qrSize) / 2;
+          const qrY = (height - qrSize) / 2 - 3;
+
+          pdf.addImage(qrImageData, 'PNG', qrX, qrY, qrSize, qrSize);
+        }
+
+        pdf.setFontSize(8);
+        pdf.setFont('helvetica', 'normal');
+        pdf.setTextColor(71, 85, 105);
+        pdf.text('Scan QR Code', width / 2, height - 8, { align: 'center' });
+        break;
+
+      case 'elegant':
+        pdf.setFillColor(30, 41, 59);
+        pdf.rect(0, 0, width, height, 'F');
+
+        pdf.setDrawColor(251, 191, 36);
+        pdf.setLineWidth(0.8);
+        pdf.rect(3, 3, width - 6, height - 6);
+
+        if (qrImageData) {
+          const qrSize = 35;
+          const qrX = (width - qrSize) / 2;
+          const qrY = (height - qrSize) / 2 - 3;
+
+          pdf.setFillColor(255, 255, 255);
+          pdf.rect(qrX - 2, qrY - 2, qrSize + 4, qrSize + 4, 'F');
+
+          pdf.addImage(qrImageData, 'PNG', qrX, qrY, qrSize, qrSize);
+        }
+
+        pdf.setFontSize(9);
+        pdf.setFont('helvetica', 'normal');
+        pdf.setTextColor(251, 191, 36);
+        pdf.text('SCAN TO CONNECT', width / 2, height - 8, { align: 'center' });
+        break;
+
+      case 'minimal':
+        pdf.setFillColor(255, 255, 255);
+        pdf.rect(0, 0, width, height, 'F');
+
+        if (qrImageData) {
+          const qrSize = 35;
+          const qrX = (width - qrSize) / 2;
+          const qrY = (height - qrSize) / 2 - 3;
+
+          pdf.addImage(qrImageData, 'PNG', qrX, qrY, qrSize, qrSize);
+        }
+
+        pdf.setFontSize(7);
+        pdf.setFont('helvetica', 'normal');
+        pdf.setTextColor(100, 116, 139);
+        pdf.text('scan for digital card', width / 2, height - 8, { align: 'center' });
+        break;
+    }
+  } catch (error) {
+    console.error('Failed to add QR code to back:', error);
+  }
+}
+
 export async function generateBusinessCardPDF(card: BusinessCard, theme: PDFTheme): Promise<jsPDF> {
   const pdf = new jsPDF({
     orientation: 'landscape',
@@ -30,16 +132,24 @@ export async function generateBusinessCardPDF(card: BusinessCard, theme: PDFThem
 
   switch (theme) {
     case 'modern':
-      return generateModernCard(pdf, card, width, height);
+      await generateModernCard(pdf, card, width, height);
+      break;
     case 'classic':
-      return generateClassicCard(pdf, card, width, height);
+      await generateClassicCard(pdf, card, width, height);
+      break;
     case 'elegant':
-      return generateElegantCard(pdf, card, width, height);
+      await generateElegantCard(pdf, card, width, height);
+      break;
     case 'minimal':
-      return generateMinimalCard(pdf, card, width, height);
+      await generateMinimalCard(pdf, card, width, height);
+      break;
     default:
-      return generateModernCard(pdf, card, width, height);
+      await generateModernCard(pdf, card, width, height);
   }
+
+  await addBackSide(pdf, card, width, height, theme);
+
+  return pdf;
 }
 
 async function generateModernCard(pdf: jsPDF, card: BusinessCard, width: number, height: number): Promise<jsPDF> {

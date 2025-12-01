@@ -103,6 +103,7 @@ export default function BusinessCardPDFGenerator({ card, onClose }: BusinessCard
             <h3 className="text-lg font-semibold text-slate-900 mb-4">
               Card Preview - {PDF_THEME_OPTIONS.find((d) => d.id === selectedDesign)?.name}
             </h3>
+            <p className="text-sm text-slate-600 mb-4">Front and back will be included in the PDF</p>
             <div className="bg-white border-2 border-slate-200 rounded-lg p-6 aspect-[1.586/1] max-w-md mx-auto relative overflow-hidden">
               {selectedDesign === 'modern' && (
                 <div className="h-full flex flex-col">
@@ -214,6 +215,10 @@ export default function BusinessCardPDFGenerator({ card, onClose }: BusinessCard
                 <span className="text-sm text-slate-700">Orientation:</span>
                 <span className="text-sm font-medium text-slate-900">Landscape</span>
               </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-slate-700">Pages:</span>
+                <span className="text-sm font-medium text-slate-900">2 (Front + Back with QR)</span>
+              </div>
             </div>
           </div>
 
@@ -250,8 +255,10 @@ export default function BusinessCardPDFGenerator({ card, onClose }: BusinessCard
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
             <h4 className="font-semibold text-blue-900 mb-2">Printing Instructions:</h4>
             <ol className="text-sm text-blue-800 space-y-1 list-decimal list-inside">
+              <li>PDF contains 2 pages: Front side (page 1) and Back side with QR code (page 2)</li>
               <li>Print on standard business card paper (85.6×53.98mm)</li>
               <li>Use high-quality color printing for best results</li>
+              <li>For double-sided printing, flip on short edge</li>
               <li>Ensure printer settings are set to "Actual Size" or "100%"</li>
               <li>Consider using premium cardstock (300gsm) for professional results</li>
               <li>Print multiple copies and trim carefully for perfect edges</li>
