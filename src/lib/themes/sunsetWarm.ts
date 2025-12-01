@@ -1,0 +1,36 @@
+import type { CardTheme } from './types';
+
+export const sunsetWarmTheme: CardTheme = {
+  id: 'sunset-warm',
+  name: 'Sunset Warm',
+  description: 'Warm sunset colors with orange and red',
+  preview: {
+    headerGradient: 'from-orange-500 to-red-600',
+    backgroundColor: 'from-orange-50 to-red-50',
+    cardBackground: 'bg-white',
+    accentColor: 'bg-orange-500',
+    textColor: 'text-slate-900',
+  },
+  styles: {
+    pageBackground: 'bg-gradient-to-br from-orange-50 to-red-50',
+    cardContainer: 'bg-white rounded-2xl shadow-xl',
+    header: 'bg-gradient-to-r from-orange-500 to-red-600 h-32',
+    avatar: 'w-32 h-32 rounded-full object-cover border-4 border-white shadow-lg',
+    avatarFallback: 'w-32 h-32 rounded-full bg-gradient-to-br from-orange-500 to-red-600 flex items-center justify-center text-white text-4xl font-bold border-4 border-white shadow-lg',
+    title: 'text-4xl font-bold text-slate-900',
+    subtitle: 'text-xl text-slate-600',
+    bioContainer: 'p-6 bg-orange-50 rounded-xl',
+    bioText: 'text-slate-700 leading-relaxed text-center',
+    contactItem: 'flex items-center gap-4 p-4 bg-orange-50 rounded-xl transition group',
+    contactItemHover: 'hover:bg-orange-100',
+    contactIcon: 'w-12 h-12 rounded-lg bg-orange-100 flex items-center justify-center transition text-orange-600',
+    contactIconHover: 'group-hover:bg-orange-200',
+    contactLabel: 'text-xs font-medium text-slate-500 uppercase',
+    contactValue: 'text-slate-900',
+    socialButton: 'flex items-center gap-2 px-4 py-3 bg-orange-50 rounded-lg transition group border border-orange-200',
+    socialButtonHover: 'hover:bg-orange-100',
+    actionButton: 'flex items-center justify-center gap-3 bg-orange-500 text-white px-6 py-4 rounded-xl transition font-medium',
+    actionButtonHover: 'hover:bg-orange-600',
+    qrContainer: 'p-8 bg-orange-50 rounded-xl',
+  },
+};

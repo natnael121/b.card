@@ -1,0 +1,36 @@
+import type { CardTheme } from './types';
+
+export const modernBlueTheme: CardTheme = {
+  id: 'modern-blue',
+  name: 'Modern Blue',
+  description: 'Clean and professional with blue accents',
+  preview: {
+    headerGradient: 'from-blue-600 to-blue-700',
+    backgroundColor: 'from-blue-50 to-slate-100',
+    cardBackground: 'bg-white',
+    accentColor: 'bg-blue-600',
+    textColor: 'text-slate-900',
+  },
+  styles: {
+    pageBackground: 'bg-gradient-to-br from-blue-50 to-slate-100',
+    cardContainer: 'bg-white rounded-2xl shadow-xl',
+    header: 'bg-gradient-to-r from-blue-600 to-blue-700 h-32',
+    avatar: 'w-32 h-32 rounded-full object-cover border-4 border-white shadow-lg',
+    avatarFallback: 'w-32 h-32 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white text-4xl font-bold border-4 border-white shadow-lg',
+    title: 'text-4xl font-bold text-slate-900',
+    subtitle: 'text-xl text-slate-600',
+    bioContainer: 'p-6 bg-slate-50 rounded-xl',
+    bioText: 'text-slate-700 leading-relaxed text-center',
+    contactItem: 'flex items-center gap-4 p-4 bg-slate-50 rounded-xl transition group',
+    contactItemHover: 'hover:bg-slate-100',
+    contactIcon: 'w-12 h-12 rounded-lg bg-blue-100 flex items-center justify-center transition text-blue-600',
+    contactIconHover: 'group-hover:bg-blue-200',
+    contactLabel: 'text-xs font-medium text-slate-500 uppercase',
+    contactValue: 'text-slate-900',
+    socialButton: 'flex items-center gap-2 px-4 py-3 bg-slate-50 rounded-lg transition group border border-slate-200',
+    socialButtonHover: 'hover:bg-slate-100',
+    actionButton: 'flex items-center justify-center gap-3 bg-blue-600 text-white px-6 py-4 rounded-xl transition font-medium',
+    actionButtonHover: 'hover:bg-blue-700',
+    qrContainer: 'p-8 bg-slate-50 rounded-xl',
+  },
+};

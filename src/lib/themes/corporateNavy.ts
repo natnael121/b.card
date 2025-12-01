@@ -1,0 +1,36 @@
+import type { CardTheme } from './types';
+
+export const corporateNavyTheme: CardTheme = {
+  id: 'corporate-navy',
+  name: 'Corporate Navy',
+  description: 'Professional navy blue for business',
+  preview: {
+    headerGradient: 'from-slate-800 to-blue-900',
+    backgroundColor: 'from-slate-100 to-blue-50',
+    cardBackground: 'bg-white',
+    accentColor: 'bg-blue-900',
+    textColor: 'text-slate-900',
+  },
+  styles: {
+    pageBackground: 'bg-gradient-to-br from-slate-100 to-blue-50',
+    cardContainer: 'bg-white rounded-xl shadow-xl',
+    header: 'bg-gradient-to-r from-slate-800 to-blue-900 h-32',
+    avatar: 'w-32 h-32 rounded-full object-cover border-4 border-white shadow-lg',
+    avatarFallback: 'w-32 h-32 rounded-full bg-gradient-to-br from-slate-700 to-blue-900 flex items-center justify-center text-white text-4xl font-bold border-4 border-white shadow-lg',
+    title: 'text-4xl font-bold text-slate-900',
+    subtitle: 'text-xl text-slate-600',
+    bioContainer: 'p-6 bg-slate-50 rounded-lg border-l-4 border-blue-900',
+    bioText: 'text-slate-700 leading-relaxed text-left',
+    contactItem: 'flex items-center gap-4 p-4 bg-slate-50 rounded-lg transition group',
+    contactItemHover: 'hover:bg-slate-100',
+    contactIcon: 'w-12 h-12 rounded-lg bg-blue-100 flex items-center justify-center transition text-blue-900',
+    contactIconHover: 'group-hover:bg-blue-200',
+    contactLabel: 'text-xs font-semibold text-slate-500 uppercase tracking-wide',
+    contactValue: 'text-slate-900 font-medium',
+    socialButton: 'flex items-center gap-2 px-4 py-3 bg-slate-50 rounded-lg transition group border border-slate-200',
+    socialButtonHover: 'hover:bg-slate-100 hover:border-blue-900',
+    actionButton: 'flex items-center justify-center gap-3 bg-blue-900 text-white px-6 py-4 rounded-lg transition font-semibold',
+    actionButtonHover: 'hover:bg-blue-800',
+    qrContainer: 'p-8 bg-slate-50 rounded-lg',
+  },
+};

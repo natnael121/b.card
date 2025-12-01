@@ -1,0 +1,36 @@
+import type { CardTheme } from './types';
+
+export const vibrantGradientTheme: CardTheme = {
+  id: 'vibrant-gradient',
+  name: 'Vibrant Gradient',
+  description: 'Bold colors with dynamic gradients',
+  preview: {
+    headerGradient: 'from-pink-500 via-rose-500 to-orange-500',
+    backgroundColor: 'from-orange-50 to-pink-50',
+    cardBackground: 'bg-white',
+    accentColor: 'bg-gradient-to-r from-pink-500 to-orange-500',
+    textColor: 'text-slate-900',
+  },
+  styles: {
+    pageBackground: 'bg-gradient-to-br from-orange-50 to-pink-50',
+    cardContainer: 'bg-white rounded-3xl shadow-2xl',
+    header: 'bg-gradient-to-r from-pink-500 via-rose-500 to-orange-500 h-40',
+    avatar: 'w-32 h-32 rounded-full object-cover border-4 border-white shadow-xl ring-4 ring-pink-200',
+    avatarFallback: 'w-32 h-32 rounded-full bg-gradient-to-br from-pink-500 to-orange-500 flex items-center justify-center text-white text-4xl font-bold border-4 border-white shadow-xl ring-4 ring-pink-200',
+    title: 'text-4xl font-black text-slate-900',
+    subtitle: 'text-xl text-slate-700 font-semibold',
+    bioContainer: 'p-6 bg-gradient-to-r from-pink-50 to-orange-50 rounded-2xl',
+    bioText: 'text-slate-800 leading-relaxed text-center font-medium',
+    contactItem: 'flex items-center gap-4 p-4 bg-gradient-to-r from-pink-50 to-orange-50 rounded-2xl transition group',
+    contactItemHover: 'hover:from-pink-100 hover:to-orange-100',
+    contactIcon: 'w-12 h-12 rounded-xl bg-gradient-to-r from-pink-500 to-orange-500 flex items-center justify-center transition shadow-lg text-white',
+    contactIconHover: 'group-hover:scale-110',
+    contactLabel: 'text-xs font-bold text-slate-500 uppercase tracking-wide',
+    contactValue: 'text-slate-900 font-semibold',
+    socialButton: 'flex items-center gap-2 px-4 py-3 bg-gradient-to-r from-pink-50 to-orange-50 rounded-xl transition group border-2 border-pink-200',
+    socialButtonHover: 'hover:from-pink-100 hover:to-orange-100 hover:border-pink-300',
+    actionButton: 'flex items-center justify-center gap-3 bg-gradient-to-r from-pink-500 to-orange-500 text-white px-6 py-4 rounded-2xl transition font-bold shadow-lg',
+    actionButtonHover: 'hover:from-pink-600 hover:to-orange-600 hover:shadow-xl',
+    qrContainer: 'p-8 bg-gradient-to-r from-pink-50 to-orange-50 rounded-2xl',
+  },
+};

@@ -1,0 +1,36 @@
+import type { CardTheme } from './types';
+
+export const elegantDarkTheme: CardTheme = {
+  id: 'elegant-dark',
+  name: 'Elegant Dark',
+  description: 'Sophisticated dark theme with gold accents',
+  preview: {
+    headerGradient: 'from-slate-800 to-slate-900',
+    backgroundColor: 'from-slate-900 to-slate-800',
+    cardBackground: 'bg-slate-800',
+    accentColor: 'bg-amber-500',
+    textColor: 'text-white',
+  },
+  styles: {
+    pageBackground: 'bg-gradient-to-br from-slate-900 to-slate-800',
+    cardContainer: 'bg-slate-800 rounded-2xl shadow-2xl border border-slate-700',
+    header: 'bg-gradient-to-r from-slate-800 to-slate-900 h-32',
+    avatar: 'w-32 h-32 rounded-full object-cover border-4 border-amber-500 shadow-xl',
+    avatarFallback: 'w-32 h-32 rounded-full bg-gradient-to-br from-amber-500 to-amber-600 flex items-center justify-center text-slate-900 text-4xl font-bold border-4 border-amber-500 shadow-xl',
+    title: 'text-4xl font-bold text-white',
+    subtitle: 'text-xl text-slate-300',
+    bioContainer: 'p-6 bg-slate-700/50 rounded-xl border border-slate-600',
+    bioText: 'text-slate-200 leading-relaxed text-center',
+    contactItem: 'flex items-center gap-4 p-4 bg-slate-700/50 rounded-xl transition group border border-slate-600',
+    contactItemHover: 'hover:bg-slate-700',
+    contactIcon: 'w-12 h-12 rounded-lg bg-amber-500/20 flex items-center justify-center transition text-amber-500',
+    contactIconHover: 'group-hover:bg-amber-500/30',
+    contactLabel: 'text-xs font-medium text-slate-400 uppercase',
+    contactValue: 'text-white',
+    socialButton: 'flex items-center gap-2 px-4 py-3 bg-slate-700/50 rounded-lg transition group border border-slate-600',
+    socialButtonHover: 'hover:bg-slate-700',
+    actionButton: 'flex items-center justify-center gap-3 bg-amber-500 text-slate-900 px-6 py-4 rounded-xl transition font-medium',
+    actionButtonHover: 'hover:bg-amber-600',
+    qrContainer: 'p-8 bg-slate-700/50 rounded-xl border border-slate-600',
+  },
+};

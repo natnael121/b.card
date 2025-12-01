@@ -1,0 +1,36 @@
+import type { CardTheme } from './types';
+
+export const minimalistTheme: CardTheme = {
+  id: 'minimalist',
+  name: 'Minimalist',
+  description: 'Clean and simple with maximum whitespace',
+  preview: {
+    headerGradient: 'from-white to-slate-50',
+    backgroundColor: 'from-white to-slate-50',
+    cardBackground: 'bg-white',
+    accentColor: 'bg-slate-900',
+    textColor: 'text-slate-900',
+  },
+  styles: {
+    pageBackground: 'bg-white',
+    cardContainer: 'bg-white rounded-none shadow-none border-t border-b border-slate-200',
+    header: 'bg-white h-20',
+    avatar: 'w-24 h-24 rounded-full object-cover border-2 border-slate-900',
+    avatarFallback: 'w-24 h-24 rounded-full bg-slate-900 flex items-center justify-center text-white text-3xl font-bold',
+    title: 'text-3xl font-light text-slate-900 tracking-tight',
+    subtitle: 'text-lg text-slate-600 font-light',
+    bioContainer: 'p-0 border-l-2 border-slate-900 pl-4 my-8',
+    bioText: 'text-slate-700 leading-relaxed text-left font-light',
+    contactItem: 'flex items-center gap-4 p-3 border-b border-slate-200 transition group',
+    contactItemHover: 'hover:border-slate-900',
+    contactIcon: 'w-10 h-10 flex items-center justify-center transition text-slate-900',
+    contactIconHover: '',
+    contactLabel: 'text-xs font-medium text-slate-400 uppercase tracking-wider',
+    contactValue: 'text-slate-900 font-light',
+    socialButton: 'flex items-center gap-2 px-3 py-2 border border-slate-200 rounded transition group',
+    socialButtonHover: 'hover:border-slate-900',
+    actionButton: 'flex items-center justify-center gap-3 bg-slate-900 text-white px-6 py-3 rounded transition font-light',
+    actionButtonHover: 'hover:bg-slate-700',
+    qrContainer: 'p-6 border-t border-slate-200',
+  },
+};
