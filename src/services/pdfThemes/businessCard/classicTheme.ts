@@ -11,34 +11,8 @@ export const generateClassicCardFront: BusinessCardGenerator = async (
   pdf.setFillColor(255, 255, 255);
   pdf.rect(0, 0, width, height, 'F');
 
-  const logoSize = 16;
-  const logoX = width - logoSize - 4;
-  const logoY = 4;
-
-  if (card.avatar_url) {
-    try {
-      const imageData = await loadImageAsBase64(card.avatar_url);
-      if (imageData) {
-        pdf.setFillColor(30, 41, 59);
-        pdf.circle(logoX + logoSize / 2, logoY + logoSize / 2, logoSize / 2, 'F');
-
-        pdf.addImage(imageData, 'JPEG', logoX + 1, logoY + 1, logoSize - 2, logoSize - 2, undefined, 'FAST');
-      }
-    } catch (error) {
-      console.error('Failed to add logo:', error);
-    }
-  }
-
-  const qrSize = 18;
-  const qrX = 4;
-  const qrY = height / 2 - qrSize / 2;
-
-  try {
-    await addQRCodeToBack(pdf, card, qrX, qrY, qrSize);
-  } catch (error) {
-    console.error('Failed to add QR code:', error);
-  }
-
+  // Remove the logo from front (moved to back)
+  // Add vertical line instead
   pdf.setDrawColor(200, 200, 200);
   pdf.setLineWidth(0.3);
   pdf.line(26, 6, 26, height - 6);
@@ -72,44 +46,61 @@ export const generateClassicCardFront: BusinessCardGenerator = async (
   pdf.setFontSize(7);
   pdf.setTextColor(50, 50, 50);
 
+  // Add icons for contact information using simple text symbols
+  const iconSpacing = 4;
+  const textOffset = 4; // Space between icon and text
+
   if (card.phone) {
+    // Phone icon (P)
     pdf.setFont('helvetica', 'bold');
+    pdf.setTextColor(30, 41, 59);
     pdf.text('P', contentX, yPos);
     pdf.setFont('helvetica', 'normal');
-    pdf.text(card.phone, contentX + 3, yPos);
+    pdf.setTextColor(50, 50, 50);
+    pdf.text(card.phone, contentX + textOffset, yPos);
     yPos += 3.5;
   }
 
   if (card.email) {
+    // Email icon (✉)
     pdf.setFont('helvetica', 'bold');
-    pdf.text('E', contentX, yPos);
+    pdf.setTextColor(30, 41, 59);
+    pdf.text('✉', contentX, yPos);
     pdf.setFont('helvetica', 'normal');
+    pdf.setTextColor(50, 50, 50);
     const email = card.email.length > 25 ? card.email.substring(0, 22) + '...' : card.email;
-    pdf.text(email, contentX + 3, yPos);
+    pdf.text(email, contentX + textOffset, yPos);
     yPos += 3.5;
   }
 
   if (card.website) {
+    // Website icon (W)
     pdf.setFont('helvetica', 'bold');
+    pdf.setTextColor(30, 41, 59);
     pdf.text('W', contentX, yPos);
     pdf.setFont('helvetica', 'normal');
+    pdf.setTextColor(50, 50, 50);
     const website = card.website.replace(/^https?:\/\//, '').replace(/\/$/, '');
     const displayWebsite = website.length > 20 ? website.substring(0, 17) + '...' : website;
-    pdf.text(displayWebsite, contentX + 3, yPos);
+    pdf.text(displayWebsite, contentX + textOffset, yPos);
     yPos += 4;
   }
 
-  yPos += 1;
-
+  // Social media icons section (moved after contact info)
+  yPos += 2;
+  
   if (card.email) {
     pdf.setFont('helvetica', 'bold');
-    pdf.text('f', contentX - 1, yPos);
+    pdf.setTextColor(30, 41, 59);
+    pdf.text('f', contentX, yPos);
   }
   if (card.phone) {
-    pdf.text('in', contentX + 3, yPos);
+    pdf.setTextColor(30, 41, 59);
+    pdf.text('in', contentX + 4, yPos);
   }
   if (card.website) {
-    pdf.text('ig', contentX + 7, yPos);
+    pdf.setTextColor(30, 41, 59);
+    pdf.text('ig', contentX + 8, yPos);
   }
 
   return pdf;
@@ -126,14 +117,48 @@ export const generateClassicCardBack: BackSideGenerator = async (
   pdf.setFillColor(255, 255, 255);
   pdf.rect(0, 0, width, height, 'F');
 
-  const qrSize = 30;
-  const qrX = (width - qrSize) / 2;
-  const qrY = (height - qrSize) / 2;
+  // Add logo to the center of the back side
+  const logoSize = 40; // Larger logo for the back
+  const logoX = (width - logoSize) / 2;
+  const logoY = (height - logoSize) / 2 - 10;
 
-  await addQRCodeToBack(pdf, card, qrX, qrY, qrSize);
+  if (card.avatar_url) {
+    try {
+      const imageData = await loadImageAsBase64(card.avatar_url);
+      if (imageData) {
+        // Create a circular background for the logo
+        pdf.setFillColor(30, 41, 59);
+        pdf.circle(logoX + logoSize / 2, logoY + logoSize / 2, logoSize / 2, 'F');
+        
+        // Add the logo image
+        pdf.addImage(
+          imageData, 
+          'JPEG', 
+          logoX + 4, // Add padding
+          logoY + 4, // Add padding
+          logoSize - 8, // Reduce size for padding
+          logoSize - 8, 
+          undefined, 
+          'FAST'
+        );
+      }
+    } catch (error) {
+      console.error('Failed to add logo to back:', error);
+    }
+  }
 
-  pdf.setFontSize(8);
-  pdf.setFont('helvetica', 'normal');
-  pdf.setTextColor(100, 116, 139);
-  pdf.text('Scan to view profile', width / 2, height - 6, { align: 'center' });
+  // Remove QR code from back (as per requirement)
+  // Add company name or tagline instead
+  pdf.setFontSize(10);
+  pdf.setFont('helvetica', 'bold');
+  pdf.setTextColor(30, 41, 59);
+  
+  if (card.company) {
+    pdf.text(card.company.toUpperCase(), width / 2, height - 20, { align: 'center' });
+  }
+  
+  // Optional: Add a subtle decorative line
+  pdf.setDrawColor(220, 220, 220);
+  pdf.setLineWidth(0.5);
+  pdf.line(width / 2 - 20, height - 25, width / 2 + 20, height - 25);
 };
