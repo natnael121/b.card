@@ -1,9 +1,10 @@
 import { BusinessCard } from '../lib/firebase';
-import { X, Download, QrCode, Mail, Phone, Globe, MapPin, Share2 } from 'lucide-react';
+import { X, Download, QrCode, Mail, Phone, Globe, MapPin, Share2, FileText } from 'lucide-react';
 import { downloadVCard } from '../lib/vcard';
 import { generateQRCodeURL } from '../lib/qrcode';
 import { useState } from 'react';
 import SocialShareModal from './SocialShareModal';
+import BusinessCardPDFGenerator from './BusinessCardPDFGenerator';
 
 interface CardPreviewProps {
   card: BusinessCard;
@@ -13,6 +14,7 @@ interface CardPreviewProps {
 export default function CardPreview({ card, onClose }: CardPreviewProps) {
   const [showQR, setShowQR] = useState(false);
   const [showSocialShare, setShowSocialShare] = useState(false);
+  const [showPDFGenerator, setShowPDFGenerator] = useState(false);
   const cardURL = `${window.location.origin}/c/${card.slug}`;
 
   return (
@@ -94,13 +96,20 @@ export default function CardPreview({ card, onClose }: CardPreviewProps) {
               )}
             </div>
 
-            <div className="grid grid-cols-3 gap-4 mb-6">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
               <button
                 onClick={() => downloadVCard(card)}
                 className="flex items-center justify-center gap-2 bg-blue-600 text-white px-4 py-3 rounded-lg hover:bg-blue-700 transition"
               >
                 <Download size={20} />
-                <span className="hidden sm:inline">Download</span>
+                <span className="hidden sm:inline">vCard</span>
+              </button>
+              <button
+                onClick={() => setShowPDFGenerator(true)}
+                className="flex items-center justify-center gap-2 bg-purple-600 text-white px-4 py-3 rounded-lg hover:bg-purple-700 transition"
+              >
+                <FileText size={20} />
+                <span className="hidden sm:inline">PDF</span>
               </button>
               <button
                 onClick={() => setShowSocialShare(true)}
@@ -114,7 +123,7 @@ export default function CardPreview({ card, onClose }: CardPreviewProps) {
                 className="flex items-center justify-center gap-2 bg-slate-600 text-white px-4 py-3 rounded-lg hover:bg-slate-700 transition"
               >
                 <QrCode size={20} />
-                <span className="hidden sm:inline">{showQR ? 'Hide QR' : 'QR Code'}</span>
+                <span className="hidden sm:inline">{showQR ? 'Hide' : 'QR'}</span>
               </button>
             </div>
 
@@ -138,6 +147,13 @@ export default function CardPreview({ card, onClose }: CardPreviewProps) {
           card={card}
           cardURL={cardURL}
           onClose={() => setShowSocialShare(false)}
+        />
+      )}
+
+      {showPDFGenerator && (
+        <BusinessCardPDFGenerator
+          card={card}
+          onClose={() => setShowPDFGenerator(false)}
         />
       )}
     </div>

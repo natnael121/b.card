@@ -1,34 +1,28 @@
-// PDF Theme Exports
-export { generateModernDesignPDF } from './modernTheme';
-export { generateClassicDesignPDF } from './classicTheme';
-export { generateElegantDesignPDF } from './elegantTheme';
-export { generateMinimalDesignPDF } from './minimalTheme';
-
 export type PDFTheme = 'modern' | 'classic' | 'elegant' | 'minimal';
 
 export const PDF_THEME_OPTIONS = [
   {
     id: 'modern' as const,
-    name: 'Modern Style',
-    description: 'Alternating layout with circular images and elegant typography',
-    preview: 'Modern design with large circular food images and stylish script business name'
+    name: 'Modern Professional',
+    description: 'Clean and contemporary design with blue accents',
+    preview: 'Professional layout with gradient header and modern styling'
   },
   {
     id: 'classic' as const,
-    name: 'Classic Restaurant',
-    description: 'Traditional menu layout with clean typography and organized sections',
-    preview: 'Clean, professional layout with category sections and traditional styling'
+    name: 'Classic Business',
+    description: 'Traditional business card layout with elegant typography',
+    preview: 'Timeless design with organized information and classic styling'
   },
   {
     id: 'elegant' as const,
-    name: 'Elegant Fine Dining',
-    description: 'Sophisticated design with premium typography and refined layout',
-    preview: 'Luxurious design with premium fonts, gold accents, and sophisticated spacing'
+    name: 'Elegant Premium',
+    description: 'Sophisticated design with gold accents and refined layout',
+    preview: 'Luxurious design with premium fonts and sophisticated spacing'
   },
   {
     id: 'minimal' as const,
     name: 'Minimal Clean',
-    description: 'Clean, simple design with focus on readability and white space',
-    preview: 'Minimalist layout with clean typography and plenty of white space'
+    description: 'Minimalist design focusing on essential information',
+    preview: 'Simple, clean layout with maximum white space and clarity'
   }
 ];
