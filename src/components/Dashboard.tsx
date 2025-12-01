@@ -87,6 +87,7 @@ export default function Dashboard() {
         onViewChange={setActiveView}
         userEmail={user?.email}
         onSignOut={signOut}
+        selectedCard={previewCard}
       />
 
       <main className="flex-1 overflow-auto pt-16 lg:pt-0">

@@ -1,15 +1,19 @@
-import { LayoutGrid, BarChart3, Settings, LogOut, Menu, X, Users } from 'lucide-react';
+import { LayoutGrid, BarChart3, Settings, LogOut, Menu, X, Users, FileText } from 'lucide-react';
 import { useState } from 'react';
+import { BusinessCard } from '../lib/firebase';
+import BusinessCardPDFGenerator from './BusinessCardPDFGenerator';
 
 interface SidebarProps {
   activeView: 'cards' | 'analytics' | 'contacts' | 'settings';
   onViewChange: (view: 'cards' | 'analytics' | 'contacts' | 'settings') => void;
   userEmail?: string;
   onSignOut: () => void;
+  selectedCard?: BusinessCard | null;
 }
 
-export default function Sidebar({ activeView, onViewChange, userEmail, onSignOut }: SidebarProps) {
+export default function Sidebar({ activeView, onViewChange, userEmail, onSignOut, selectedCard }: SidebarProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [showPDFGenerator, setShowPDFGenerator] = useState(false);
 
   const menuItems = [
     { id: 'cards', label: 'My Cards', icon: LayoutGrid },
@@ -70,7 +74,19 @@ export default function Sidebar({ activeView, onViewChange, userEmail, onSignOut
             </div>
           </nav>
 
-          <div className="p-4 border-t border-slate-200">
+          <div className="p-4 border-t border-slate-200 space-y-2">
+            {selectedCard && (
+              <button
+                onClick={() => {
+                  setShowPDFGenerator(true);
+                  setIsOpen(false);
+                }}
+                className="w-full flex items-center gap-3 px-4 py-3 text-slate-700 hover:bg-slate-100 rounded-lg transition"
+              >
+                <FileText size={20} />
+                <span className="font-medium">Print Card</span>
+              </button>
+            )}
             <button
               onClick={() => {
                 onSignOut();
@@ -86,6 +102,13 @@ export default function Sidebar({ activeView, onViewChange, userEmail, onSignOut
       </aside>
 
       <div className="hidden lg:block" />
+
+      {showPDFGenerator && selectedCard && (
+        <BusinessCardPDFGenerator
+          card={selectedCard}
+          onClose={() => setShowPDFGenerator(false)}
+        />
+      )}
     </>
   );
 }
