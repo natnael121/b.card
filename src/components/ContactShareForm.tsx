@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { BusinessCard } from '../lib/firebase';
 import { submitContactShare } from '../services/firestore';
+import { sendContactShareNotification } from '../services/telegramService';
 import { X, Send, Check } from 'lucide-react';
 
 interface ContactShareFormProps {
@@ -26,12 +27,18 @@ export default function ContactShareForm({ card, onClose }: ContactShareFormProp
     setLoading(true);
 
     try {
-      await submitContactShare(card.id, {
+      const contactData = {
         visitor_name: formData.visitor_name,
         visitor_email: formData.visitor_email,
         visitor_phone: formData.visitor_phone || null,
         visitor_company: formData.visitor_company || null,
         visitor_notes: formData.visitor_notes || null,
+      };
+
+      await submitContactShare(card.id, contactData);
+
+      sendContactShareNotification(card.user_id, card, contactData).catch(err => {
+        console.error('Failed to send Telegram notification:', err);
       });
 
       setSuccess(true);
