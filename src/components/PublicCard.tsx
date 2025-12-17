@@ -69,18 +69,18 @@ export default function PublicCard({ slug }: PublicCardProps) {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-slate-100 flex items-center justify-center">
-        <div className="text-slate-600">Loading...</div>
+      <div className="min-h-screen bg-gradient-to-b from-black to-neutral-900 flex items-center justify-center">
+        <div className="text-neutral-400">Loading...</div>
       </div>
     );
   }
 
   if (!card) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-slate-100 flex items-center justify-center p-4">
-        <div className="bg-white rounded-2xl shadow-xl p-12 text-center max-w-md">
-          <h2 className="text-2xl font-bold text-slate-900 mb-4">Card Not Found</h2>
-          <p className="text-slate-600">This business card does not exist or is no longer active.</p>
+      <div className="min-h-screen bg-gradient-to-b from-black to-neutral-900 flex items-center justify-center p-4">
+        <div className="bg-neutral-900 rounded-2xl shadow-xl p-12 text-center max-w-md border border-neutral-800">
+          <h2 className="text-2xl font-bold text-white mb-4">Card Not Found</h2>
+          <p className="text-neutral-400">This business card does not exist or is no longer active.</p>
         </div>
       </div>
     );
@@ -90,69 +90,71 @@ export default function PublicCard({ slug }: PublicCardProps) {
   const theme = getThemeById(card.theme_id || 'modern-blue');
 
   return (
-    <div className={`min-h-screen ${theme.styles.pageBackground} flex flex-col items-center justify-center p-0 sm:p-0`}>
+    <div className="min-h-screen bg-gradient-to-b from-black to-neutral-900 flex flex-col items-center justify-center p-4 sm:p-6">
       <div className="w-full max-w-md mx-auto my-auto">
-        <div className={theme.styles.cardContainer + ' overflow-hidden'}>
-          <div className={`${theme.styles.header} relative ${card.banner_url ? 'h-40' : ''}`}>
+        <div className="bg-neutral-900 rounded-3xl shadow-2xl border border-neutral-800 overflow-hidden">
+          {/* Banner behind avatar */}
+          <div className="relative h-32 bg-gradient-to-b from-neutral-800 to-neutral-900">
             {card.banner_url && (
               <img
                 src={card.banner_url}
                 alt="Banner"
-                className="w-full h-full object-cover"
+                className="w-full h-full object-cover opacity-40"
               />
             )}
           </div>
 
-          <div className="px-6 sm:px-6 md:px-8 pb-6 sm:pb-8">
-            <div className="text-center -mt-14 mb-6">
+          <div className="px-6 sm:px-8 pb-8">
+            {/* Avatar overlapping the banner */}
+            <div className="text-center -mt-16 mb-6">
               {card.avatar_url ? (
                 <img
                   src={card.avatar_url}
                   alt={card.full_name}
-                  className={theme.styles.avatar + ' mx-auto'}
+                  className="w-32 h-32 rounded-2xl object-cover mx-auto shadow-xl border-2 border-neutral-700"
                 />
               ) : (
-                <div className={theme.styles.avatarFallback + ' mx-auto'}>
+                <div className="w-32 h-32 rounded-2xl bg-neutral-800 flex items-center justify-center text-white text-4xl font-semibold mx-auto border-2 border-neutral-700 shadow-xl">
                   {card.full_name.charAt(0)}
                 </div>
               )}
 
-              <h1 className={`${theme.styles.title} mt-4 mb-2`}>
+              <h1 className="text-3xl font-semibold text-white mt-4 mb-2">
                 {card.full_name}
               </h1>
 
               {card.title && (
-                <p className={`${theme.styles.subtitle} mb-1`}>
+                <p className="text-base text-neutral-400 mb-1">
                   {card.title}
                 </p>
               )}
 
               {card.company && (
-                <p className={`${theme.styles.subtitle} opacity-80`}>
+                <p className="text-sm text-neutral-500">
                   {card.company}
                 </p>
               )}
             </div>
 
             {card.bio && (
-              <div className={theme.styles.bioContainer + ' mb-6'}>
-                <p className={theme.styles.bioText}>{card.bio}</p>
+              <div className="mt-4 px-4 mb-6">
+                <p className="text-neutral-400 text-sm text-center">{card.bio}</p>
               </div>
             )}
 
-            <div className="space-y-2 sm:space-y-3 mb-6">
+            <div className="space-y-3 mb-6">
               {card.email && (
                 <a
                   href={`mailto:${card.email}`}
                   onClick={() => trackEvent(card.id, 'email_click').catch(err => console.error('Failed to track email click:', err))}
-                  className={`${theme.styles.contactItem} ${theme.styles.contactItemHover}`}
+                  className="flex items-center gap-4 px-4 py-4 bg-neutral-800 rounded-2xl transition hover:bg-neutral-750"
                 >
-                  <div className={`${theme.styles.contactIcon} ${theme.styles.contactIconHover} text-inherit`}>
-                    <Mail size={20} className="text-inherit sm:w-6 sm:h-6" />
+                  <div className="w-10 h-10 rounded-xl bg-neutral-700 flex items-center justify-center text-white">
+                    <Mail size={20} />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className={`${theme.styles.contactLabel} text-xs sm:text-sm`}>Email</p>
-                    <p className={`${theme.styles.contactValue} text-sm sm:text-base truncate`}>{card.email}</p>
+                    <p className="text-xs text-neutral-400">Email</p>
+                    <p className="text-sm text-white truncate">{card.email}</p>
                   </div>
                 </a>
               )}
@@ -161,14 +163,14 @@ export default function PublicCard({ slug }: PublicCardProps) {
                 <a
                   href={`tel:${card.phone}`}
                   onClick={() => trackEvent(card.id, 'phone_click').catch(err => console.error('Failed to track phone click:', err))}
-                  className={`${theme.styles.contactItem} ${theme.styles.contactItemHover}`}
+                  className="flex items-center gap-4 px-4 py-4 bg-neutral-800 rounded-2xl transition hover:bg-neutral-750"
                 >
-                  <div className={`${theme.styles.contactIcon} ${theme.styles.contactIconHover} text-inherit`}>
-                    <Phone size={20} className="text-inherit sm:w-6 sm:h-6" />
+                  <div className="w-10 h-10 rounded-xl bg-neutral-700 flex items-center justify-center text-white">
+                    <Phone size={20} />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className={`${theme.styles.contactLabel} text-xs sm:text-sm`}>Phone</p>
-                    <p className={`${theme.styles.contactValue} text-sm sm:text-base`}>{card.phone}</p>
+                    <p className="text-xs text-neutral-400">Phone</p>
+                    <p className="text-sm text-white">{card.phone}</p>
                   </div>
                 </a>
               )}
@@ -179,26 +181,26 @@ export default function PublicCard({ slug }: PublicCardProps) {
                   target="_blank"
                   rel="noopener noreferrer"
                   onClick={() => trackEvent(card.id, 'website_click').catch(err => console.error('Failed to track website click:', err))}
-                  className={`${theme.styles.contactItem} ${theme.styles.contactItemHover}`}
+                  className="flex items-center gap-4 px-4 py-4 bg-neutral-800 rounded-2xl transition hover:bg-neutral-750"
                 >
-                  <div className={`${theme.styles.contactIcon} ${theme.styles.contactIconHover} text-inherit`}>
-                    <Globe size={20} className="text-inherit sm:w-6 sm:h-6" />
+                  <div className="w-10 h-10 rounded-xl bg-neutral-700 flex items-center justify-center text-white">
+                    <Globe size={20} />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className={`${theme.styles.contactLabel} text-xs sm:text-sm`}>Website</p>
-                    <p className={`${theme.styles.contactValue} text-sm sm:text-base truncate`}>{card.website}</p>
+                    <p className="text-xs text-neutral-400">Website</p>
+                    <p className="text-sm text-white truncate">{card.website}</p>
                   </div>
                 </a>
               )}
 
               {card.address && (
-                <div className={theme.styles.contactItem}>
-                  <div className={`${theme.styles.contactIcon} text-inherit`}>
-                    <MapPin size={20} className="text-inherit sm:w-6 sm:h-6" />
+                <div className="flex items-center gap-4 px-4 py-4 bg-neutral-800 rounded-2xl">
+                  <div className="w-10 h-10 rounded-xl bg-neutral-700 flex items-center justify-center text-white">
+                    <MapPin size={20} />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className={`${theme.styles.contactLabel} text-xs sm:text-sm`}>Address</p>
-                    <p className={`${theme.styles.contactValue} text-sm sm:text-base`}>{card.address}</p>
+                    <p className="text-xs text-neutral-400">Address</p>
+                    <p className="text-sm text-white">{card.address}</p>
                   </div>
                 </div>
               )}
@@ -206,24 +208,23 @@ export default function PublicCard({ slug }: PublicCardProps) {
 
             {card.social_media && card.social_media.length > 0 && (
               <div className="mb-6">
-                <h3 className={theme.styles.contactLabel + ' mb-3 text-center text-xs sm:text-sm'}>
+                <h3 className="text-xs text-neutral-400 mb-3 text-center">
                   Connect on Social Media
                 </h3>
-                <div className="flex flex-wrap justify-center gap-2 sm:gap-3">
+                <div className="flex flex-wrap justify-center gap-3">
                   {card.social_media.map((social, index) => {
                     const Icon = getSocialIcon(social.platform);
                     return (
                       <a
-  key={index}
-  href={social.url}
-  target="_blank"
-  rel="noopener noreferrer"
-  className={`${theme.styles.socialButton} ${theme.styles.socialButtonHover}`}
-  title={social.platform}
->
-  <Icon size={20} className="sm:w-6 sm:h-6 group-hover:scale-110 transition" />
-</a>
-
+                        key={index}
+                        href={social.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="w-12 h-12 flex items-center justify-center bg-neutral-800 rounded-xl transition hover:bg-neutral-700"
+                        title={social.platform}
+                      >
+                        <Icon size={20} className="text-white group-hover:scale-110 transition" />
+                      </a>
                     );
                   })}
                 </div>
@@ -233,17 +234,17 @@ export default function PublicCard({ slug }: PublicCardProps) {
             <div className="grid grid-cols-2 gap-3 mb-4">
               <button
                 onClick={() => setShowSocialShare(true)}
-                className={`${theme.styles.actionButton} ${theme.styles.actionButtonHover} text-sm sm:text-base py-3`}
+                className="flex items-center justify-center gap-3 bg-white text-black px-6 py-4 rounded-2xl font-semibold hover:bg-neutral-200 transition text-sm sm:text-base"
               >
-                <Share2 size={18} className="sm:w-5 sm:h-5" />
+                <Share2 size={18} />
                 <span className="hidden sm:inline">Share Card</span>
                 <span className="sm:hidden">Share</span>
               </button>
               <button
                 onClick={() => setShowQR(!showQR)}
-                className={`${theme.styles.actionButton} ${theme.styles.actionButtonHover} text-sm sm:text-base py-3`}
+                className="flex items-center justify-center gap-3 bg-white text-black px-6 py-4 rounded-2xl font-semibold hover:bg-neutral-200 transition text-sm sm:text-base"
               >
-                <QrCode size={18} className="sm:w-5 sm:h-5" />
+                <QrCode size={18} />
                 <span className="hidden sm:inline">{showQR ? 'Hide QR' : 'Show QR'}</span>
                 <span className="sm:hidden">QR</span>
               </button>
@@ -252,36 +253,36 @@ export default function PublicCard({ slug }: PublicCardProps) {
             {card.allow_contact_sharing && (
               <button
                 onClick={() => setShowContactShare(true)}
-                className="w-full flex items-center justify-center gap-2 sm:gap-3 bg-green-600 text-white px-4 sm:px-6 py-3 sm:py-4 rounded-xl hover:bg-green-700 transition font-medium mb-4 text-sm sm:text-base"
+                className="w-full flex items-center justify-center gap-3 bg-white text-black px-6 py-4 rounded-2xl hover:bg-neutral-200 transition font-semibold mb-4 text-sm sm:text-base"
               >
-                <Share2 size={18} className="sm:w-5 sm:h-5" />
+                <Share2 size={18} />
                 Share Your Contact
               </button>
             )}
 
             {showQR && (
-              <div className={`text-center ${theme.styles.qrContainer}`}>
+              <div className="text-center p-6 bg-neutral-800 rounded-2xl">
                 <img
                   src={generateQRCodeURL(cardURL)}
                   alt="QR Code"
-                  className="mx-auto mb-3 rounded-lg shadow-md w-48 h-48 sm:w-auto sm:h-auto"
+                  className="mx-auto mb-3 rounded-lg shadow-md w-48 h-48"
                 />
-                <p className={`${theme.styles.contactValue} mb-2 font-medium text-sm sm:text-base`}>Share this card</p>
-                <p className={`${theme.styles.contactLabel} break-all text-xs sm:text-sm px-2`}>{cardURL}</p>
+                <p className="text-white mb-2 font-medium text-sm">Share this card</p>
+                <p className="text-neutral-400 break-all text-xs px-2">{cardURL}</p>
               </div>
             )}
           </div>
         </div>
 
-        <div className="text-center mt-4 sm:mt-6 space-y-3">
+        <div className="text-center mt-6 space-y-3">
           <button
             onClick={() => setShowPrivacySettings(true)}
-            className="flex items-center justify-center gap-2 text-slate-500 hover:text-slate-700 text-xs sm:text-sm transition mx-auto"
+            className="flex items-center justify-center gap-2 text-neutral-500 hover:text-neutral-400 text-xs sm:text-sm transition mx-auto"
           >
             <Shield size={14} className="sm:w-4 sm:h-4" />
             Privacy Settings
           </button>
-          <p className="text-slate-600 text-xs sm:text-sm">
+          <p className="text-neutral-600 text-xs sm:text-sm">
             Powered by <span className="font-semibold">Orvion</span>
           </p>
         </div>
