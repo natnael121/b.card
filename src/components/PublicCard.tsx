@@ -90,12 +90,12 @@ export default function PublicCard({ slug }: PublicCardProps) {
   const theme = getThemeById(card.theme_id || 'modern-blue');
 
   return (
-    <div className={`min-h-screen ${theme.styles.pageBackground} flex flex-col items-center justify-center p-4 sm:p-6`}>
+    <div className={`min-h-screen ${theme.styles.pageBackground} flex flex-col items-center justify-center p-0 sm:p-0`}>
       <div className="w-full max-w-md mx-auto my-auto">
         <div className={theme.styles.cardContainer + ' overflow-hidden'}>
           <div className={theme.styles.header}></div>
 
-          <div className="px-4 sm:px-6 md:px-8 pb-6 sm:pb-8">
+          <div className="px-6 sm:px-6 md:px-8 pb-6 sm:pb-8">
             <div className="text-center -mt-14 mb-6">
               {card.avatar_url ? (
                 <img
