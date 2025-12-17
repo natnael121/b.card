@@ -90,7 +90,7 @@ export default function PublicCard({ slug }: PublicCardProps) {
   const theme = getThemeById(card.theme_id || 'modern-blue');
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-black to-neutral-900 flex flex-col items-center justify-center p-4 sm:p-6">
+    <div className="min-h-screen bg-gradient-to-b from-black to-neutral-900 flex flex-col items-center justify-center p-0 sm:p-6">
       <div className="w-full max-w-md mx-auto my-auto">
         <div className="bg-neutral-900 rounded-3xl shadow-2xl border border-neutral-800 overflow-hidden">
           {/* Banner with avatar overlapping at the left */}
