@@ -8,23 +8,32 @@ export default function AuthForm() {
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
   const { signIn, signUp } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setSuccess('');
     setLoading(true);
 
     try {
       if (isSignUp) {
+        console.log('Attempting to sign up user...');
         const { error } = await signUp(email, password, fullName);
-        if (error) throw error;
+        if (error) {
+          console.error('Sign up error:', error);
+          throw error;
+        }
+        console.log('Sign up successful!');
+        setSuccess('Account created successfully! Redirecting...');
       } else {
         const { error } = await signIn(email, password);
         if (error) throw error;
       }
     } catch (err: unknown) {
+      console.error('Auth error:', err);
       setError((err as Error).message);
     } finally {
       setLoading(false);
@@ -91,6 +100,12 @@ export default function AuthForm() {
             </div>
           )}
 
+          {success && (
+            <div className="bg-green-50 text-green-600 px-4 py-3 rounded-lg text-sm">
+              {success}
+            </div>
+          )}
+
           <button
             type="submit"
             disabled={loading}
@@ -117,6 +132,7 @@ export default function AuthForm() {
             onClick={() => {
               setIsSignUp(!isSignUp);
               setError('');
+              setSuccess('');
             }}
             className="text-blue-600 hover:text-blue-700 text-sm font-medium"
           >

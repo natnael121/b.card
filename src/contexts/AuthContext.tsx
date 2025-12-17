@@ -28,18 +28,43 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signUp = async (email: string, password: string, fullName: string) => {
     try {
+      console.log('[Auth] Starting user registration...');
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      console.log('[Auth] User account created:', userCredential.user.uid);
 
-      await setDoc(doc(db, 'profiles', userCredential.user.uid), {
+      const profileData = {
         id: userCredential.user.uid,
         email: userCredential.user.email,
         full_name: fullName,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
-      });
+      };
+
+      console.log('[Auth] Creating profile document...', profileData);
+
+      try {
+        await setDoc(doc(db, 'profiles', userCredential.user.uid), profileData);
+        console.log('[Auth] Profile document created successfully!');
+      } catch (profileError: any) {
+        console.error('[Auth] Failed to create profile document:', profileError);
+        console.error('[Auth] Error code:', profileError.code);
+        console.error('[Auth] Error message:', profileError.message);
+
+        await new Promise(resolve => setTimeout(resolve, 1000));
+
+        console.log('[Auth] Retrying profile creation...');
+        try {
+          await setDoc(doc(db, 'profiles', userCredential.user.uid), profileData);
+          console.log('[Auth] Profile created on retry!');
+        } catch (retryError: any) {
+          console.error('[Auth] Retry failed:', retryError);
+          throw new Error(`Failed to create user profile: ${retryError.message || retryError.code || 'Unknown error'}. Your account was created but profile setup failed. Please contact support.`);
+        }
+      }
 
       return { error: null };
-    } catch (error) {
+    } catch (error: any) {
+      console.error('[Auth] Sign up error:', error);
       return { error: error as Error };
     }
   };
