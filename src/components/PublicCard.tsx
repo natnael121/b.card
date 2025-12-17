@@ -90,13 +90,13 @@ export default function PublicCard({ slug }: PublicCardProps) {
   const theme = getThemeById(card.theme_id || 'modern-blue');
 
   return (
-    <div className={`min-h-screen ${theme.styles.pageBackground} py-12 px-4`}>
-      <div className="max-w-2xl mx-auto">
+    <div className={`min-h-screen ${theme.styles.pageBackground} flex flex-col items-center justify-center p-4 sm:p-6`}>
+      <div className="w-full max-w-md mx-auto my-auto">
         <div className={theme.styles.cardContainer + ' overflow-hidden'}>
           <div className={theme.styles.header}></div>
 
-          <div className="px-8 pb-8">
-            <div className="text-center -mt-16 mb-6">
+          <div className="px-4 sm:px-6 md:px-8 pb-6 sm:pb-8">
+            <div className="text-center -mt-14 mb-6">
               {card.avatar_url ? (
                 <img
                   src={card.avatar_url}
@@ -110,19 +110,19 @@ export default function PublicCard({ slug }: PublicCardProps) {
               )}
             </div>
 
-            <div className="text-center mb-8">
-              <h1 className={theme.styles.title + ' mb-2'}>{card.full_name}</h1>
-              {card.title && <p className={theme.styles.subtitle + ' mb-1'}>{card.title}</p>}
-              {card.company && <p className={theme.styles.subtitle}>{card.company}</p>}
+            <div className="text-center mb-6">
+              <h1 className={theme.styles.title + ' mb-2 text-2xl sm:text-3xl md:text-4xl'}>{card.full_name}</h1>
+              {card.title && <p className={theme.styles.subtitle + ' mb-1 text-base sm:text-lg md:text-xl'}>{card.title}</p>}
+              {card.company && <p className={theme.styles.subtitle + ' text-sm sm:text-base md:text-lg'}>{card.company}</p>}
             </div>
 
             {card.bio && (
-              <div className={theme.styles.bioContainer + ' mb-8'}>
-                <p className={theme.styles.bioText}>{card.bio}</p>
+              <div className={theme.styles.bioContainer + ' mb-6'}>
+                <p className={theme.styles.bioText + ' text-sm sm:text-base'}>{card.bio}</p>
               </div>
             )}
 
-            <div className="space-y-3 mb-8">
+            <div className="space-y-2 sm:space-y-3 mb-6">
               {card.email && (
                 <a
                   href={`mailto:${card.email}`}
@@ -130,11 +130,11 @@ export default function PublicCard({ slug }: PublicCardProps) {
                   className={`${theme.styles.contactItem} ${theme.styles.contactItemHover}`}
                 >
                   <div className={`${theme.styles.contactIcon} ${theme.styles.contactIconHover} text-inherit`}>
-                    <Mail size={24} className="text-inherit" />
+                    <Mail size={20} className="text-inherit sm:w-6 sm:h-6" />
                   </div>
-                  <div className="flex-1">
-                    <p className={theme.styles.contactLabel}>Email</p>
-                    <p className={theme.styles.contactValue}>{card.email}</p>
+                  <div className="flex-1 min-w-0">
+                    <p className={`${theme.styles.contactLabel} text-xs sm:text-sm`}>Email</p>
+                    <p className={`${theme.styles.contactValue} text-sm sm:text-base truncate`}>{card.email}</p>
                   </div>
                 </a>
               )}
@@ -146,11 +146,11 @@ export default function PublicCard({ slug }: PublicCardProps) {
                   className={`${theme.styles.contactItem} ${theme.styles.contactItemHover}`}
                 >
                   <div className={`${theme.styles.contactIcon} ${theme.styles.contactIconHover} text-inherit`}>
-                    <Phone size={24} className="text-inherit" />
+                    <Phone size={20} className="text-inherit sm:w-6 sm:h-6" />
                   </div>
-                  <div className="flex-1">
-                    <p className={theme.styles.contactLabel}>Phone</p>
-                    <p className={theme.styles.contactValue}>{card.phone}</p>
+                  <div className="flex-1 min-w-0">
+                    <p className={`${theme.styles.contactLabel} text-xs sm:text-sm`}>Phone</p>
+                    <p className={`${theme.styles.contactValue} text-sm sm:text-base`}>{card.phone}</p>
                   </div>
                 </a>
               )}
@@ -164,11 +164,11 @@ export default function PublicCard({ slug }: PublicCardProps) {
                   className={`${theme.styles.contactItem} ${theme.styles.contactItemHover}`}
                 >
                   <div className={`${theme.styles.contactIcon} ${theme.styles.contactIconHover} text-inherit`}>
-                    <Globe size={24} className="text-inherit" />
+                    <Globe size={20} className="text-inherit sm:w-6 sm:h-6" />
                   </div>
-                  <div className="flex-1">
-                    <p className={theme.styles.contactLabel}>Website</p>
-                    <p className={`${theme.styles.contactValue} truncate`}>{card.website}</p>
+                  <div className="flex-1 min-w-0">
+                    <p className={`${theme.styles.contactLabel} text-xs sm:text-sm`}>Website</p>
+                    <p className={`${theme.styles.contactValue} text-sm sm:text-base truncate`}>{card.website}</p>
                   </div>
                 </a>
               )}
@@ -176,22 +176,22 @@ export default function PublicCard({ slug }: PublicCardProps) {
               {card.address && (
                 <div className={theme.styles.contactItem}>
                   <div className={`${theme.styles.contactIcon} text-inherit`}>
-                    <MapPin size={24} className="text-inherit" />
+                    <MapPin size={20} className="text-inherit sm:w-6 sm:h-6" />
                   </div>
-                  <div className="flex-1">
-                    <p className={theme.styles.contactLabel}>Address</p>
-                    <p className={theme.styles.contactValue}>{card.address}</p>
+                  <div className="flex-1 min-w-0">
+                    <p className={`${theme.styles.contactLabel} text-xs sm:text-sm`}>Address</p>
+                    <p className={`${theme.styles.contactValue} text-sm sm:text-base`}>{card.address}</p>
                   </div>
                 </div>
               )}
             </div>
 
             {card.social_media && card.social_media.length > 0 && (
-              <div className="mb-8">
-                <h3 className={theme.styles.contactLabel + ' mb-4 text-center'}>
+              <div className="mb-6">
+                <h3 className={theme.styles.contactLabel + ' mb-3 text-center text-xs sm:text-sm'}>
                   Connect on Social Media
                 </h3>
-                <div className="flex flex-wrap justify-center gap-3">
+                <div className="flex flex-wrap justify-center gap-2 sm:gap-3">
                   {card.social_media.map((social, index) => {
                     const Icon = getSocialIcon(social.platform);
                     return (
@@ -203,7 +203,7 @@ export default function PublicCard({ slug }: PublicCardProps) {
   className={`${theme.styles.socialButton} ${theme.styles.socialButtonHover}`}
   title={social.platform}
 >
-  <Icon size={24} className="group-hover:scale-110 transition" />
+  <Icon size={20} className="sm:w-6 sm:h-6 group-hover:scale-110 transition" />
 </a>
 
                     );
@@ -212,29 +212,31 @@ export default function PublicCard({ slug }: PublicCardProps) {
               </div>
             )}
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+            <div className="grid grid-cols-2 gap-3 mb-4">
               <button
                 onClick={() => setShowSocialShare(true)}
-                className={`${theme.styles.actionButton} ${theme.styles.actionButtonHover}`}
+                className={`${theme.styles.actionButton} ${theme.styles.actionButtonHover} text-sm sm:text-base py-3`}
               >
-                <Share2 size={22} />
-                Share Card
+                <Share2 size={18} className="sm:w-5 sm:h-5" />
+                <span className="hidden sm:inline">Share Card</span>
+                <span className="sm:hidden">Share</span>
               </button>
               <button
                 onClick={() => setShowQR(!showQR)}
-                className={`${theme.styles.actionButton} ${theme.styles.actionButtonHover}`}
+                className={`${theme.styles.actionButton} ${theme.styles.actionButtonHover} text-sm sm:text-base py-3`}
               >
-                <QrCode size={22} />
-                {showQR ? 'Hide QR Code' : 'Show QR Code'}
+                <QrCode size={18} className="sm:w-5 sm:h-5" />
+                <span className="hidden sm:inline">{showQR ? 'Hide QR' : 'Show QR'}</span>
+                <span className="sm:hidden">QR</span>
               </button>
             </div>
 
             {card.allow_contact_sharing && (
               <button
                 onClick={() => setShowContactShare(true)}
-                className="w-full flex items-center justify-center gap-3 bg-green-600 text-white px-6 py-4 rounded-xl hover:bg-green-700 transition font-medium mb-6"
+                className="w-full flex items-center justify-center gap-2 sm:gap-3 bg-green-600 text-white px-4 sm:px-6 py-3 sm:py-4 rounded-xl hover:bg-green-700 transition font-medium mb-4 text-sm sm:text-base"
               >
-                <Share2 size={22} />
+                <Share2 size={18} className="sm:w-5 sm:h-5" />
                 Share Your Contact
               </button>
             )}
@@ -244,26 +246,24 @@ export default function PublicCard({ slug }: PublicCardProps) {
                 <img
                   src={generateQRCodeURL(cardURL)}
                   alt="QR Code"
-                  className="mx-auto mb-4 rounded-lg shadow-md"
+                  className="mx-auto mb-3 rounded-lg shadow-md w-48 h-48 sm:w-auto sm:h-auto"
                 />
-                <p className={`${theme.styles.contactValue} mb-2 font-medium`}>Share this card</p>
-                <p className={`${theme.styles.contactLabel} break-all`}>{cardURL}</p>
+                <p className={`${theme.styles.contactValue} mb-2 font-medium text-sm sm:text-base`}>Share this card</p>
+                <p className={`${theme.styles.contactLabel} break-all text-xs sm:text-sm px-2`}>{cardURL}</p>
               </div>
             )}
           </div>
         </div>
 
-        <div className="text-center mt-8">
-          <div className="flex items-center justify-center gap-4 mb-4">
-            <button
-              onClick={() => setShowPrivacySettings(true)}
-              className="flex items-center gap-2 text-slate-500 hover:text-slate-700 text-sm transition"
-            >
-              <Shield size={16} />
-              Privacy Settings
-            </button>
-          </div>
-          <p className="text-slate-600 text-sm">
+        <div className="text-center mt-4 sm:mt-6 space-y-3">
+          <button
+            onClick={() => setShowPrivacySettings(true)}
+            className="flex items-center justify-center gap-2 text-slate-500 hover:text-slate-700 text-xs sm:text-sm transition mx-auto"
+          >
+            <Shield size={14} className="sm:w-4 sm:h-4" />
+            Privacy Settings
+          </button>
+          <p className="text-slate-600 text-xs sm:text-sm">
             Powered by <span className="font-semibold">Orvion</span>
           </p>
         </div>
