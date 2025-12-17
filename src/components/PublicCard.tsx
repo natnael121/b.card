@@ -110,11 +110,40 @@ export default function PublicCard({ slug }: PublicCardProps) {
               )}
             </div>
 
-            <div className="text-center mb-6">
-              <h1 className={theme.styles.title + ' mb-2 text-2xl sm:text-3xl md:text-4xl'}>{card.full_name}</h1>
-              {card.title && <p className={theme.styles.subtitle + ' mb-1 text-base sm:text-lg md:text-xl'}>{card.title}</p>}
-              {card.company && <p className={theme.styles.subtitle + ' text-sm sm:text-base md:text-lg'}>{card.company}</p>}
-            </div>
+           <div className="px-6 pt-8 pb-6">
+  {/* Avatar */}
+  <div className="flex justify-center mb-4">
+    {card.avatar_url ? (
+      <img
+        src={card.avatar_url}
+        alt={card.full_name}
+        className="w-24 h-24 rounded-2xl object-cover shadow-lg border border-neutral-700"
+      />
+    ) : (
+      <div className="w-24 h-24 rounded-2xl bg-neutral-800 flex items-center justify-center text-white text-3xl font-semibold shadow-lg">
+        {card.full_name.charAt(0)}
+      </div>
+    )}
+  </div>
+
+  {/* Name / Title / Company */}
+  <div className="text-center mb-5">
+    <h1 className="text-xl font-semibold text-white leading-tight">
+      {card.full_name}
+    </h1>
+
+    {card.title && (
+      <p className="text-sm text-neutral-400 mt-1">
+        {card.title}
+      </p>
+    )}
+
+    {card.company && (
+      <p className="text-xs text-neutral-500 mt-0.5">
+        {card.company}
+      </p>
+    )}
+  </div>
 
             {card.bio && (
               <div className={theme.styles.bioContainer + ' mb-6'}>
