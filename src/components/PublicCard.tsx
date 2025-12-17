@@ -150,22 +150,7 @@ export default function PublicCard({ slug }: PublicCardProps) {
               )}
             </div>
 
-            {/* Tags/roles chips - if you have them */}
-            <div className="flex flex-wrap gap-2 mb-8">
-              <span className="px-3 py-1.5 bg-neutral-800 text-neutral-300 rounded-full text-xs font-medium">
-                Stock Trading
-              </span>
-              <span className="px-3 py-1.5 bg-neutral-800 text-neutral-300 rounded-full text-xs font-medium">
-                Real Estate
-              </span>
-              <span className="px-3 py-1.5 bg-neutral-800 text-neutral-300 rounded-full text-xs font-medium">
-                Investor
-              </span>
-              <span className="px-3 py-1.5 bg-neutral-800 text-neutral-300 rounded-full text-xs font-medium">
-                HR
-              </span>
-            </div>
-          </div>
+           
 
           {card.bio && (
             <div className="px-6 mb-6">
