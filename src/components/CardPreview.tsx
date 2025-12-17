@@ -29,16 +29,26 @@ export default function CardPreview({ card, onClose }: CardPreviewProps) {
             </button>
           </div>
 
+          {card.banner_url && (
+            <div className="relative h-48 w-full overflow-hidden">
+              <img
+                src={card.banner_url}
+                alt="Banner"
+                className="w-full h-full object-cover"
+              />
+            </div>
+          )}
+
           <div className="p-8">
             <div className="text-center mb-8">
               {card.avatar_url ? (
                 <img
                   src={card.avatar_url}
                   alt={card.full_name}
-                  className="w-32 h-32 rounded-full object-cover mx-auto mb-4 border-4 border-slate-100"
+                  className={`w-32 h-32 rounded-full object-cover mx-auto mb-4 border-4 border-white shadow-lg ${card.banner_url ? '-mt-20' : ''}`}
                 />
               ) : (
-                <div className="w-32 h-32 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white text-4xl font-bold mx-auto mb-4">
+                <div className={`w-32 h-32 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white text-4xl font-bold mx-auto mb-4 border-4 border-white shadow-lg ${card.banner_url ? '-mt-20' : ''}`}>
                   {card.full_name.charAt(0)}
                 </div>
               )}

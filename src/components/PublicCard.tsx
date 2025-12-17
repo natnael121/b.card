@@ -93,7 +93,15 @@ export default function PublicCard({ slug }: PublicCardProps) {
     <div className={`min-h-screen ${theme.styles.pageBackground} flex flex-col items-center justify-center p-0 sm:p-0`}>
       <div className="w-full max-w-md mx-auto my-auto">
         <div className={theme.styles.cardContainer + ' overflow-hidden'}>
-          <div className={theme.styles.header}></div>
+          <div className={`${theme.styles.header} relative ${card.banner_url ? 'h-40' : ''}`}>
+            {card.banner_url && (
+              <img
+                src={card.banner_url}
+                alt="Banner"
+                className="w-full h-full object-cover"
+              />
+            )}
+          </div>
 
           <div className="px-6 sm:px-6 md:px-8 pb-6 sm:pb-8">
             <div className="text-center -mt-14 mb-6">
@@ -107,42 +115,29 @@ export default function PublicCard({ slug }: PublicCardProps) {
                 <div className={theme.styles.avatarFallback + ' mx-auto'}>
                   {card.full_name.charAt(0)}
                 </div>
-              )} 
-            <div className="px-6 pt-8 pb-6">
-  {/* Avatar */}
-  <div className="flex justify-center mb-4">
-    {card.avatar_url ? (
-      <img
-        src={card.avatar_url}
-        alt={card.full_name}
-        className="w-24 h-24 rounded-2xl object-cover shadow-lg border border-neutral-700"
-      />
-    ) : (
-      <div className="w-24 h-24 rounded-2xl bg-neutral-800 flex items-center justify-center text-white text-3xl font-semibold shadow-lg">
-        {card.full_name.charAt(0)}
-      </div>
-    )}
-  </div>
+              )}
 
-  {/* Name / Title / Company */}
-  <div className="text-center mb-5">
-    <h1 className="text-xl font-semibold text-white leading-tight">
-      {card.full_name}
-    </h1>
- 
-    {card.title && (
-      <p className="text-sm text-neutral-400 mt-1">
-        {card.title}
-      </p>
-    )}
+              <h1 className={`${theme.styles.title} mt-4 mb-2`}>
+                {card.full_name}
+              </h1>
 
-    {card.company && (
-      <p className="text-xs text-neutral-500 mt-0.5">
-        {card.company}
-      </p>
-    )}
-  </div>
+              {card.title && (
+                <p className={`${theme.styles.subtitle} mb-1`}>
+                  {card.title}
+                </p>
+              )}
 
+              {card.company && (
+                <p className={`${theme.styles.subtitle} opacity-80`}>
+                  {card.company}
+                </p>
+              )}
+            </div>
+
+            {card.bio && (
+              <div className={theme.styles.bioContainer + ' mb-6'}>
+                <p className={theme.styles.bioText}>{card.bio}</p>
+              </div>
             )}
 
             <div className="space-y-2 sm:space-y-3 mb-6">
