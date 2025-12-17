@@ -93,55 +93,90 @@ export default function PublicCard({ slug }: PublicCardProps) {
     <div className="min-h-screen bg-gradient-to-b from-black to-neutral-900 flex flex-col items-center justify-center p-4 sm:p-6">
       <div className="w-full max-w-md mx-auto my-auto">
         <div className="bg-neutral-900 rounded-3xl shadow-2xl border border-neutral-800 overflow-hidden">
-          {/* Banner behind avatar */}
-          <div className="relative h-32 bg-gradient-to-b from-neutral-800 to-neutral-900">
+          {/* Banner with avatar overlapping */}
+          <div className="relative h-48 bg-gradient-to-b from-neutral-800 to-neutral-900">
             {card.banner_url && (
               <img
                 src={card.banner_url}
                 alt="Banner"
-                className="w-full h-full object-cover opacity-40"
+                className="w-full h-full object-cover"
               />
             )}
-          </div>
-
-          <div className="px-6 sm:px-8 pb-8">
-            {/* Avatar overlapping the banner */}
-            <div className="text-center -mt-16 mb-6">
+            
+            {/* Avatar positioned in the middle of banner like in the image */}
+            <div className="absolute left-1/2 -translate-x-1/2 -bottom-16">
               {card.avatar_url ? (
                 <img
                   src={card.avatar_url}
                   alt={card.full_name}
-                  className="w-32 h-32 rounded-2xl object-cover mx-auto shadow-xl border-2 border-neutral-700"
+                  className="w-32 h-32 rounded-full object-cover border-4 border-neutral-900 shadow-xl"
                 />
               ) : (
-                <div className="w-32 h-32 rounded-2xl bg-neutral-800 flex items-center justify-center text-white text-4xl font-semibold mx-auto border-2 border-neutral-700 shadow-xl">
+                <div className="w-32 h-32 rounded-full bg-neutral-800 flex items-center justify-center text-white text-4xl font-semibold border-4 border-neutral-900 shadow-xl">
                   {card.full_name.charAt(0)}
                 </div>
               )}
+            </div>
+          </div>
 
-              <h1 className="text-3xl font-semibold text-white mt-4 mb-2">
-                {card.full_name}
-              </h1>
+          {/* Name and title section - positioned below avatar */}
+          <div className="pt-20 pb-8 px-6 sm:px-8 text-center">
+            <h1 className="text-2xl font-bold text-white mb-2">
+              {card.full_name}
+            </h1>
 
+            {/* Multiple titles/positions like in the image */}
+            <div className="space-y-2 mb-4">
               {card.title && (
-                <p className="text-base text-neutral-400 mb-1">
+                <p className="text-lg font-medium text-neutral-300">
                   {card.title}
                 </p>
               )}
-
+              
               {card.company && (
-                <p className="text-sm text-neutral-500">
+                <p className="text-base text-neutral-400">
                   {card.company}
+                </p>
+              )}
+              
+              {/* Additional positions - you might want to add these as custom fields */}
+              {card.position && (
+                <p className="text-sm text-neutral-500">
+                  {card.position}
                 </p>
               )}
             </div>
 
-            {card.bio && (
-              <div className="mt-4 px-4 mb-6">
-                <p className="text-neutral-400 text-sm text-center">{card.bio}</p>
-              </div>
-            )}
+            {/* Tags/roles like in the image - you might need to add these as a new field */}
+            <div className="flex flex-wrap justify-center gap-2 mb-6">
+              {/* These could come from card.tags or similar field */}
+              <span className="px-3 py-1 bg-neutral-800 text-neutral-300 rounded-full text-xs">
+                Stock Trader
+              </span>
+              <span className="px-3 py-1 bg-neutral-800 text-neutral-300 rounded-full text-xs">
+                Real Estate Investor
+              </span>
+              <span className="px-3 py-1 bg-neutral-800 text-neutral-300 rounded-full text-xs">
+                HR
+              </span>
+              <span className="px-3 py-1 bg-neutral-800 text-neutral-300 rounded-full text-xs">
+                Stock Trading
+              </span>
+            </div>
 
+            {/* Let's Connect button like in the image */}
+            <button className="w-full bg-white text-black py-3 rounded-2xl font-semibold hover:bg-neutral-200 transition mb-8">
+              Let's connect
+            </button>
+          </div>
+
+          {card.bio && (
+            <div className="px-6 mb-6">
+              <p className="text-neutral-400 text-sm text-center">{card.bio}</p>
+            </div>
+          )}
+
+          <div className="px-6 sm:px-8 pb-8">
             <div className="space-y-3 mb-6">
               {card.email && (
                 <a
