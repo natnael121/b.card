@@ -129,7 +129,7 @@ export default function PublicCard({ slug }: PublicCardProps) {
     <h1 className="text-xl font-semibold text-white leading-tight">
       {card.full_name}
     </h1>
-
+ 
     {card.title && (
       <p className="text-sm text-neutral-400 mt-1">
         {card.title}
