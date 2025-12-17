@@ -122,9 +122,9 @@ export default function PublicCard({ slug }: PublicCardProps) {
           {/* Name and info section - aligned with avatar at left */}
           <div className="pt-20 pb-6 px-6 sm:px-8">
             {/* Name - large and bold */}
-            <h1 className="text-3xl font-bold text-white mb-4">
+            <h2 className="text-3xl font-bold text-white mb-2">
               {card.full_name}
-            </h1>
+            </h2>
 
             
 
