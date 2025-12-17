@@ -104,11 +104,7 @@ export default function PublicCard({ slug }: PublicCardProps) {
                   className={theme.styles.avatar + ' mx-auto'}
                 />
               ) : (
-                <div className={theme.styles.avatarFallback + ' mx-auto'}>
-                  {card.full_name.charAt(0)}
-                </div>
-              )}
-            <div className="px-6 pt-8 pb-6">
+                
   {/* Avatar */}
   <div className="flex justify-center mb-4">
     {card.avatar_url ? (
