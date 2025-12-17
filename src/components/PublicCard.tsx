@@ -128,23 +128,7 @@ export default function PublicCard({ slug }: PublicCardProps) {
 
             
 
-            {/* Professional roles/titles */}
-            <div className="space-y-2 mb-6">
-              {/* Stock Trader */}
-              <div className="flex items-start gap-2">
-                <div className="w-1 h-5 bg-neutral-600 rounded-full mt-1"></div>
-                <p className="text-base font-medium text-neutral-300">
-                  Stock Trader
-                </p>
-              </div>
-              
-              {/* Location */}
-              <div className="flex items-start gap-2">
-                <div className="w-1 h-5 bg-neutral-600 rounded-full mt-1"></div>
-                <p className="text-base text-neutral-400">
-                  New York, NY
-                </p>
-              </div>
+           
               
               {/* Company/Position - if available */}
               {card.company && (
