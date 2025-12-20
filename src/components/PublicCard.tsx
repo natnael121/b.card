@@ -67,6 +67,17 @@ export default function PublicCard({ slug }: PublicCardProps) {
     }
   };
 
+  const handleSaveContact = async () => {
+    if (!card) return;
+    try {
+      await trackEvent(card.id, 'vcard_download');
+      downloadVCard(card);
+    } catch (err) {
+      console.error('Failed to track vCard download:', err);
+      downloadVCard(card);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-black to-neutral-900 flex items-center justify-center">
@@ -247,6 +258,14 @@ export default function PublicCard({ slug }: PublicCardProps) {
                 </div>
               </div>
             )}
+
+            <button
+              onClick={handleSaveContact}
+              className="w-full flex items-center justify-center gap-3 bg-white text-black px-6 py-4 rounded-2xl hover:bg-neutral-200 transition font-semibold mb-3 text-sm sm:text-base"
+            >
+              <Download size={18} />
+              Save Contact
+            </button>
 
             <div className="grid grid-cols-2 gap-3 mb-4">
               <button
