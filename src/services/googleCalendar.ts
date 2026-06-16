@@ -13,7 +13,9 @@ export function getRedirectUri() {
  */
 export function getAuthUrl(cardId: string): string {
   const redirectUri = encodeURIComponent(getRedirectUri());
-  const scope = encodeURIComponent('https://www.googleapis.com/auth/calendar.events');
+  const scope = encodeURIComponent(
+  'https://www.googleapis.com/auth/calendar'
+);
   const clientId = encodeURIComponent(CLIENT_ID);
   
   return `https://accounts.google.com/o/oauth2/v2/auth?` +
