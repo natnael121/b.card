@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { BusinessCard } from '../lib/firebase';
-import { getBusinessCardsByUser, deleteBusinessCard } from '../services/firestore';
-import { Plus, Edit, Trash2, Eye, QrCode, BarChart3, Printer } from 'lucide-react';
+import { getBusinessCardsByUser, deleteBusinessCard, updateBusinessCard, saveGoogleCalendarToken } from '../services/firestore';
+import { Plus, Edit, Trash2, Eye, QrCode, BarChart3, X } from 'lucide-react';
 import CardForm from './CardForm';
 import CardPreview from './CardPreview';
 import AnalyticsDashboard from './AnalyticsDashboard';
@@ -10,6 +10,7 @@ import Sidebar from './Sidebar';
 import Settings from './Settings';
 import AnalyticsOverview from './AnalyticsOverview';
 import SharedContacts from './SharedContacts';
+import { exchangeCodeForTokens } from '../services/googleCalendar';
 
 export default function Dashboard() {
   const { user, signOut } = useAuth();
@@ -21,10 +22,59 @@ export default function Dashboard() {
   const [analyticsCard, setAnalyticsCard] = useState<BusinessCard | null>(null);
   const [selectedCardForPrint, setSelectedCardForPrint] = useState<BusinessCard | null>(null);
   const [activeView, setActiveView] = useState<'cards' | 'analytics' | 'contacts' | 'settings'>('cards');
+  const [googleConnecting, setGoogleConnecting] = useState(false);
+  const [googleConnectError, setGoogleConnectError] = useState<string | null>(null);
 
   useEffect(() => {
     loadCards();
   }, [user]);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const code = params.get('code');
+    const state = params.get('state');
+
+    if (code && state) {
+      handleGoogleCallback(code, state);
+    }
+  }, [user]);
+
+  const handleGoogleCallback = async (code: string, cardId: string) => {
+    setGoogleConnecting(true);
+    setGoogleConnectError(null);
+    try {
+      // Exchange code for tokens
+      const tokens = await exchangeCodeForTokens(code);
+      
+      // Save tokens to Firestore
+      await saveGoogleCalendarToken(cardId, {
+        access_token: tokens.access_token,
+        refresh_token: tokens.refresh_token,
+        expires_at: tokens.expires_at,
+      });
+
+      // Update card settings
+      await updateBusinessCard(cardId, {
+        google_calendar_enabled: true,
+        google_calendar_id: 'primary',
+        google_calendar_email: user?.email || null,
+      });
+
+      // Clean up URL parameters
+      const url = new URL(window.location.href);
+      url.searchParams.delete('code');
+      url.searchParams.delete('state');
+      window.history.replaceState({}, document.title, url.pathname);
+
+      // Refresh cards list
+      await loadCards();
+    } catch (err: any) {
+      console.error('Failed to connect Google Calendar:', err);
+      setGoogleConnectError(err.message || 'Failed to connect Google Calendar.');
+    } finally {
+      setGoogleConnecting(false);
+    }
+  };
 
   const loadCards = async () => {
     if (!user) return;
@@ -61,6 +111,43 @@ export default function Dashboard() {
     loadCards();
   };
 
+  if (googleConnecting) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-slate-100 flex flex-col items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-600 mb-4"></div>
+        <div className="text-slate-700 font-semibold text-lg">Connecting Google Calendar...</div>
+        <p className="text-slate-500 text-sm mt-1">Please wait while we finalize the connection</p>
+      </div>
+    );
+  }
+
+  if (googleConnectError) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-slate-100 flex items-center justify-center p-4">
+        <div className="bg-white rounded-2xl p-8 max-w-md w-full shadow-xl text-center border border-red-100">
+          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <X size={32} className="text-red-600" />
+          </div>
+          <h3 className="text-2xl font-bold text-slate-900 mb-2">Connection Failed</h3>
+          <p className="text-slate-600 text-sm mb-6">{googleConnectError}</p>
+          <button
+            onClick={() => {
+              setGoogleConnectError(null);
+              // Clean up URL parameters
+              const url = new URL(window.location.href);
+              url.searchParams.delete('code');
+              url.searchParams.delete('state');
+              window.history.replaceState({}, document.title, url.pathname);
+            }}
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-6 rounded-xl transition"
+          >
+            Back to Dashboard
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-slate-100 flex items-center justify-center">
@@ -86,7 +173,7 @@ export default function Dashboard() {
       <Sidebar
         activeView={activeView}
         onViewChange={setActiveView}
-        userEmail={user?.email}
+        userEmail={user?.email || undefined}
         onSignOut={signOut}
         selectedCard={selectedCardForPrint}
       />

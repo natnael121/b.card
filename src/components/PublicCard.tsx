@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { BusinessCard } from '../lib/firebase';
 import { getBusinessCardBySlug } from '../services/firestore';
-import { Download, QrCode, Mail, Phone, Globe, MapPin, Shield, Share2, Linkedin, Twitter, Facebook, Instagram, Github, Youtube, MessageCircle, Video, Send } from 'lucide-react';
+import { Download, QrCode, Mail, Phone, Globe, MapPin, Shield, Share2, Linkedin, Twitter, Facebook, Instagram, Github, Youtube, MessageCircle, Video, Send, Calendar } from 'lucide-react';
 import { downloadVCard } from '../lib/vcard';
 import { generateQRCodeURL } from '../lib/qrcode';
 import { trackEvent } from '../services/analytics';
@@ -9,6 +9,7 @@ import { getThemeById } from '../lib/themes';
 import AnalyticsOptOut from './AnalyticsOptOut';
 import ContactShareForm from './ContactShareForm';
 import SocialShareModal from './SocialShareModal';
+import AppointmentForm from './AppointmentForm';
 
 interface PublicCardProps {
   slug: string;
@@ -36,6 +37,7 @@ export default function PublicCard({ slug }: PublicCardProps) {
   const [showPrivacySettings, setShowPrivacySettings] = useState(false);
   const [showContactShare, setShowContactShare] = useState(false);
   const [showSocialShare, setShowSocialShare] = useState(false);
+  const [showAppointmentBooking, setShowAppointmentBooking] = useState(false);
 
   useEffect(() => {
     loadCard();
@@ -98,7 +100,6 @@ export default function PublicCard({ slug }: PublicCardProps) {
   }
 
   const cardURL = `${window.location.origin}/c/${card.slug}`;
-  const theme = getThemeById(card.theme_id || 'modern-blue');
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-black to-neutral-900 flex flex-col items-center justify-center p-0 sm:p-6">
@@ -288,6 +289,16 @@ export default function PublicCard({ slug }: PublicCardProps) {
               </button>
             </div>
 
+            {card.google_calendar_enabled && (
+              <button
+                onClick={() => setShowAppointmentBooking(true)}
+                className="w-full flex items-center justify-center gap-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white px-6 py-4 rounded-2xl hover:scale-[1.01] hover:shadow-lg hover:shadow-blue-900/20 active:scale-100 transition duration-200 font-semibold mb-4 text-sm sm:text-base cursor-pointer"
+              >
+                <Calendar size={18} />
+                Book Appointment
+              </button>
+            )}
+
             {card.allow_contact_sharing && (
               <button
                 onClick={() => setShowContactShare(true)}
@@ -342,6 +353,13 @@ export default function PublicCard({ slug }: PublicCardProps) {
           card={card}
           cardURL={cardURL}
           onClose={() => setShowSocialShare(false)}
+        />
+      )}
+
+      {showAppointmentBooking && (
+        <AppointmentForm
+          card={card}
+          onClose={() => setShowAppointmentBooking(false)}
         />
       )}
     </div>

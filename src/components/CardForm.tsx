@@ -5,6 +5,7 @@ import { createBusinessCard, updateBusinessCard } from '../services/firestore';
 import { uploadImageToImgBB } from '../services/imgbb';
 import { X, Save, Plus, Trash2, Linkedin, Twitter, Facebook, Instagram, Github, Youtube, MessageCircle, Upload, Video, Send, Image as ImageIcon } from 'lucide-react';
 import ThemeSelector from './ThemeSelector';
+import { getAuthUrl } from '../services/googleCalendar';
 
 interface CardFormProps {
   card: BusinessCard | null;
@@ -48,6 +49,9 @@ export default function CardForm({ card, onClose }: CardFormProps) {
     theme_id: 'modern-blue',
     allow_contact_sharing: false,
     is_active: true,
+    google_calendar_enabled: false,
+    google_calendar_id: 'primary',
+    google_calendar_email: '',
   });
 
   useEffect(() => {
@@ -68,6 +72,9 @@ export default function CardForm({ card, onClose }: CardFormProps) {
         theme_id: card.theme_id || 'modern-blue',
         allow_contact_sharing: card.allow_contact_sharing || false,
         is_active: card.is_active,
+        google_calendar_enabled: card.google_calendar_enabled || false,
+        google_calendar_id: card.google_calendar_id || 'primary',
+        google_calendar_email: card.google_calendar_email || '',
       });
     }
   }, [card]);
@@ -167,7 +174,9 @@ export default function CardForm({ card, onClose }: CardFormProps) {
         title: formData.title || null,
         company: formData.company || null,
         email: formData.email || null,
+        emails: card?.emails || [],
         phone: formData.phone || null,
+        phones: card?.phones || [],
         website: formData.website || null,
         address: formData.address || null,
         bio: formData.bio || null,
@@ -177,6 +186,9 @@ export default function CardForm({ card, onClose }: CardFormProps) {
         theme_id: formData.theme_id,
         allow_contact_sharing: formData.allow_contact_sharing,
         is_active: formData.is_active,
+        google_calendar_enabled: formData.google_calendar_enabled,
+        google_calendar_id: formData.google_calendar_id || null,
+        google_calendar_email: formData.google_calendar_email || null,
       };
 
       if (card) {
@@ -192,6 +204,54 @@ export default function CardForm({ card, onClose }: CardFormProps) {
     } catch (err: unknown) {
       setError((err as Error).message);
     } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleConnectCalendar = async () => {
+    if (!user) return;
+    
+    setError('');
+    setLoading(true);
+    try {
+      const slug = formData.slug || generateSlug(formData.full_name);
+      const cardData = {
+        slug,
+        full_name: formData.full_name,
+        title: formData.title || null,
+        company: formData.company || null,
+        email: formData.email || null,
+        emails: card?.emails || [],
+        phone: formData.phone || null,
+        phones: card?.phones || [],
+        website: formData.website || null,
+        address: formData.address || null,
+        bio: formData.bio || null,
+        avatar_url: formData.avatar_url || null,
+        banner_url: formData.banner_url || null,
+        social_media: formData.social_media.filter(sm => sm.url.trim() !== ''),
+        theme_id: formData.theme_id,
+        allow_contact_sharing: formData.allow_contact_sharing,
+        is_active: formData.is_active,
+        google_calendar_enabled: formData.google_calendar_enabled,
+        google_calendar_id: formData.google_calendar_id || null,
+        google_calendar_email: formData.google_calendar_email || null,
+      };
+
+      let activeCardId = card?.id;
+      if (card) {
+        await updateBusinessCard(card.id, cardData);
+      } else {
+        const newCard = await createBusinessCard(user.uid, {
+          user_id: user.uid,
+          ...cardData,
+        });
+        activeCardId = newCard.id;
+      }
+      
+      window.location.href = getAuthUrl(activeCardId!);
+    } catch (err: any) {
+      setError(err.message || 'Failed to save card before redirect.');
       setLoading(false);
     }
   };
@@ -520,7 +580,7 @@ export default function CardForm({ card, onClose }: CardFormProps) {
                   {formData.social_media.length > 0 && (
                     <div className="space-y-3 sm:space-y-4">
                       {formData.social_media.map((social, index) => {
-                        const platformData = SOCIAL_PLATFORMS.find(p => p.platform === social.platform);
+                        const platformData = SOCIAL_PLATFORMS.find(p => p.name === social.platform);
                         const Icon = platformData?.icon || Linkedin;
 
                         return (
@@ -650,6 +710,91 @@ export default function CardForm({ card, onClose }: CardFormProps) {
                           </p>
                         </div>
                       )}
+
+                      <div className="p-4 sm:p-6 bg-blue-50 rounded-xl border border-blue-200">
+                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                          <div className="flex-1">
+                            <span className="text-sm sm:text-base font-semibold text-slate-900 block mb-1">
+                              Google Calendar Appointment Booking
+                            </span>
+                            <span className="text-xs sm:text-sm text-slate-700 block mb-2">
+                              Let clients schedule appointments directly from your card. Meetings will be placed in your Google Calendar.
+                            </span>
+                            {formData.google_calendar_email && (
+                              <span className="inline-flex items-center gap-1.5 text-xs text-green-700 bg-green-50 border border-green-200 px-2.5 py-1 rounded-full font-medium mt-1">
+                                <span className="w-1.5 h-1.5 rounded-full bg-green-500 mr-1"></span>
+                                Connected: {formData.google_calendar_email}
+                              </span>
+                            )}
+                          </div>
+                          
+                          <div className="flex items-center gap-3">
+                            {formData.google_calendar_email ? (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setFormData({
+                                    ...formData,
+                                    google_calendar_enabled: false,
+                                    google_calendar_email: '',
+                                    google_calendar_id: 'primary',
+                                  });
+                                }}
+                                className="px-4 py-2 border border-red-300 text-red-700 rounded-lg hover:bg-red-50 text-sm font-medium transition"
+                              >
+                                Disconnect
+                              </button>
+                            ) : (
+                              <button
+                                type="button"
+                                onClick={handleConnectCalendar}
+                                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition shadow-sm"
+                              >
+                                Connect Calendar
+                              </button>
+                            )}
+                          </div>
+                        </div>
+
+                        {formData.google_calendar_email && (
+                          <div className="mt-4 pt-4 border-t border-blue-200 space-y-4">
+                            <label className="flex items-start gap-3 cursor-pointer">
+                              <input
+                                type="checkbox"
+                                checked={formData.google_calendar_enabled}
+                                onChange={(e) => setFormData({ ...formData, google_calendar_enabled: e.target.checked })}
+                                className="w-5 h-5 rounded border-blue-300 text-blue-600 focus:ring-2 focus:ring-blue-500 mt-0.5 animate-pulse"
+                              />
+                              <div>
+                                <span className="text-sm font-medium text-slate-900 block">
+                                  Enable booking for this card
+                                </span>
+                                <span className="text-xs text-slate-600">
+                                  Show "Book Appointment" button on your public card
+                                </span>
+                              </div>
+                            </label>
+
+                            {formData.google_calendar_enabled && (
+                              <div className="mt-3">
+                                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                                  Calendar ID (e.g. your Gmail or a shared Google Calendar ID)
+                                </label>
+                                <input
+                                  type="text"
+                                  value={formData.google_calendar_id}
+                                  onChange={(e) => setFormData({ ...formData, google_calendar_id: e.target.value })}
+                                  placeholder="primary"
+                                  className="w-full max-w-md px-3 py-2 text-sm rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500 outline-none transition"
+                                />
+                                <p className="text-[11px] text-slate-500 mt-1">
+                                  Defaults to "primary" (your main calendar associated with the connected Google account).
+                                </p>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>

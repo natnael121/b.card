@@ -58,6 +58,9 @@ export type BusinessCard = {
   is_active: boolean;
   created_at: string;
   updated_at: string;
+  google_calendar_enabled?: boolean;
+  google_calendar_id?: string | null;
+  google_calendar_email?: string | null;
 };
 
 export type ContactShare = {
@@ -69,4 +72,15 @@ export type ContactShare = {
   visitor_company: string | null;
   visitor_notes: string | null;
   created_at: string;
+  appointment_start?: string | null;
+  appointment_end?: string | null;
+  google_event_id?: string | null;
+};
+
+export type GoogleCalendarToken = {
+  card_id: string;
+  access_token: string;
+  refresh_token: string;
+  expires_at: number; // timestamp in ms
+  updated_at: string;
 };

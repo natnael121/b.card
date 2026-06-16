@@ -37,6 +37,25 @@ export default function SharedContacts({ userId }: SharedContactsProps) {
     });
   };
 
+  const formatDateRange = (startStr: string, endStr: string | null | undefined) => {
+    const start = new Date(startStr);
+    const dateFormatted = start.toLocaleDateString('en-US', {
+      weekday: 'short',
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+    });
+    const timeStart = start.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+    
+    if (endStr) {
+      const end = new Date(endStr);
+      const timeEnd = end.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+      return `${dateFormatted} at ${timeStart} - ${timeEnd}`;
+    }
+    
+    return `${dateFormatted} at ${timeStart}`;
+  };
+
   if (loading) {
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -74,10 +93,18 @@ export default function SharedContacts({ userId }: SharedContactsProps) {
             >
               <div className="flex items-start justify-between mb-4">
                 <div className="flex-1">
-                  <h3 className="text-lg font-semibold text-slate-900 mb-1">
-                    {contact.visitor_name}
-                  </h3>
-                  <div className="flex items-center gap-2 text-xs text-slate-500">
+                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                    <h3 className="text-lg font-semibold text-slate-900">
+                      {contact.visitor_name}
+                    </h3>
+                    {contact.appointment_start && (
+                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-800 border border-blue-200">
+                        <span className="w-1.5 h-1.5 rounded-full bg-blue-600 animate-pulse"></span>
+                        Meeting Booked
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2 text-xs text-slate-500 mt-1">
                     <Calendar size={14} />
                     <span>{formatDate(contact.created_at)}</span>
                   </div>
@@ -125,6 +152,20 @@ export default function SharedContacts({ userId }: SharedContactsProps) {
                   </div>
                 )}
               </div>
+
+              {contact.appointment_start && (
+                <div className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-100 mb-4 flex items-center justify-between">
+                  <div className="flex items-start gap-3">
+                    <Calendar size={18} className="text-blue-600 mt-0.5" />
+                    <div>
+                      <p className="text-[10px] text-blue-800 font-bold uppercase tracking-wider">Scheduled Appointment</p>
+                      <p className="text-sm font-semibold text-slate-900 mt-0.5">
+                        {formatDateRange(contact.appointment_start, contact.appointment_end)}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {contact.visitor_notes && (
                 <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">

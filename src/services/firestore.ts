@@ -1,5 +1,5 @@
 import { collection, doc, setDoc, getDoc, getDocs, query, where, orderBy, deleteDoc, Timestamp, addDoc } from 'firebase/firestore';
-import { db, BusinessCard, ContactShare } from '../lib/firebase';
+import { db, BusinessCard, ContactShare, GoogleCalendarToken } from '../lib/firebase';
 
 export async function createBusinessCard(userId: string, cardData: Omit<BusinessCard, 'id' | 'created_at' | 'updated_at'>) {
   const cardsRef = collection(db, 'business_cards');
@@ -159,4 +159,30 @@ export async function getContactSharesByUser(userId: string): Promise<ContactSha
   return allContacts.sort((a, b) => {
     return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
   });
+}
+
+export async function saveGoogleCalendarToken(
+  cardId: string,
+  tokenData: Omit<GoogleCalendarToken, 'card_id' | 'updated_at'>
+) {
+  const tokenRef = doc(db, 'google_calendar_tokens', cardId);
+  await setDoc(tokenRef, {
+    card_id: cardId,
+    ...tokenData,
+    updated_at: new Date().toISOString(),
+  });
+}
+
+export async function getGoogleCalendarToken(cardId: string): Promise<GoogleCalendarToken | null> {
+  const tokenRef = doc(db, 'google_calendar_tokens', cardId);
+  const snapshot = await getDoc(tokenRef);
+  if (!snapshot.exists()) {
+    return null;
+  }
+  return snapshot.data() as GoogleCalendarToken;
+}
+
+export async function deleteGoogleCalendarToken(cardId: string) {
+  const tokenRef = doc(db, 'google_calendar_tokens', cardId);
+  await deleteDoc(tokenRef);
 }
