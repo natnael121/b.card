@@ -225,9 +225,8 @@ export async function createCalendarEvent(
         timeZone,
       },
       attendees: [
-        { email: calendarId, responseStatus: 'accepted' },
-        { email: input.visitorEmail }
-      ],
+  { email: input.visitorEmail }
+],
       reminders: {
         useDefault: true,
       },
