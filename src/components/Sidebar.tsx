@@ -26,7 +26,7 @@ export default function Sidebar({ activeView, onViewChange, userEmail, onSignOut
     <>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="fixed top-4 left-4 z-50 p-2 lg:hidden bg-white rounded-lg shadow-md hover:shadow-lg transition"
+        className="fixed top-4 left-4 z-50 p-2 lg:hidden bg-slate-950 border border-slate-800 rounded-lg shadow-md hover:shadow-lg transition text-slate-100"
       >
         {isOpen ? <X size={24} /> : <Menu size={24} />}
       </button>
@@ -39,14 +39,14 @@ export default function Sidebar({ activeView, onViewChange, userEmail, onSignOut
       />
 
       <aside
-        className={`fixed left-0 top-0 h-screen w-64 bg-white shadow-lg z-40 transform transition-transform duration-300 lg:translate-x-0 lg:relative lg:shadow-none ${
+        className={`fixed left-0 top-0 h-screen w-64 bg-slate-950 border-r border-slate-800 z-40 transform transition-transform duration-300 lg:translate-x-0 lg:relative ${
           isOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
         <div className="flex flex-col h-full">
-          <div className="p-6 border-b border-slate-200">
-            <h1 className="text-2xl font-bold text-slate-900">Orvion</h1>
-            {userEmail && <p className="text-sm text-slate-600 mt-2 truncate">{userEmail}</p>}
+          <div className="p-6 border-b border-slate-850">
+            <h1 className="text-2xl font-bold text-slate-100">Orvion</h1>
+            {userEmail && <p className="text-sm text-slate-400 mt-2 truncate">{userEmail}</p>}
           </div>
 
           <nav className="flex-1 overflow-y-auto p-4">
@@ -60,31 +60,31 @@ export default function Sidebar({ activeView, onViewChange, userEmail, onSignOut
                       onViewChange(item.id as 'cards' | 'analytics' | 'contacts' | 'settings');
                       setIsOpen(false);
                     }}
-                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition ${
+                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition text-sm font-medium ${
                       activeView === item.id
-                        ? 'bg-blue-600 text-white'
-                        : 'text-slate-700 hover:bg-slate-100'
+                        ? 'bg-blue-600 text-white shadow-lg shadow-blue-900/30'
+                        : 'text-slate-400 hover:bg-slate-900 hover:text-slate-100'
                     }`}
                   >
                     <Icon size={20} />
-                    <span className="font-medium">{item.label}</span>
+                    <span>{item.label}</span>
                   </button>
                 );
               })}
             </div>
           </nav>
 
-          <div className="p-4 border-t border-slate-200 space-y-2">
+          <div className="p-4 border-t border-slate-850 space-y-2">
             {selectedCard && (
               <button
                 onClick={() => {
                   setShowPDFGenerator(true);
                   setIsOpen(false);
                 }}
-                className="w-full flex items-center gap-3 px-4 py-3 text-slate-700 hover:bg-slate-100 rounded-lg transition"
+                className="w-full flex items-center gap-3 px-4 py-3 text-slate-400 hover:bg-slate-900 hover:text-slate-100 rounded-xl transition text-sm font-medium"
               >
                 <FileText size={20} />
-                <span className="font-medium">Print Card</span>
+                <span>Print Card</span>
               </button>
             )}
             <button
@@ -92,10 +92,10 @@ export default function Sidebar({ activeView, onViewChange, userEmail, onSignOut
                 onSignOut();
                 setIsOpen(false);
               }}
-              className="w-full flex items-center gap-3 px-4 py-3 text-slate-700 hover:bg-slate-100 rounded-lg transition"
+              className="w-full flex items-center gap-3 px-4 py-3 text-slate-400 hover:bg-slate-900 hover:text-slate-100 rounded-xl transition text-sm font-medium"
             >
               <LogOut size={20} />
-              <span className="font-medium">Sign Out</span>
+              <span>Sign Out</span>
             </button>
           </div>
         </div>

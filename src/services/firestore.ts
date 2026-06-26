@@ -31,16 +31,48 @@ export async function deleteBusinessCard(cardId: string) {
   await deleteDoc(cardRef);
 }
 
-export async function getBusinessCardsByUser(userId: string): Promise<BusinessCard[]> {
+export async function getBusinessCardsByUser(userId: string, email?: string | null): Promise<BusinessCard[]> {
   const cardsRef = collection(db, 'business_cards');
-  const q = query(
+  const q1 = query(
     cardsRef,
     where('user_id', '==', userId)
   );
 
-  const snapshot = await getDocs(q);
-  const cards = snapshot.docs.map(doc => {
-    const card = doc.data() as BusinessCard;
+  const snapshot1 = await getDocs(q1);
+  const cardsMap = new Map<string, BusinessCard>();
+
+  snapshot1.docs.forEach(doc => {
+    cardsMap.set(doc.id, doc.data() as BusinessCard);
+  });
+
+  if (email) {
+    const q2 = query(
+      cardsRef,
+      where('staff_emails', 'array-contains', email)
+    );
+    const snapshot2 = await getDocs(q2);
+    snapshot2.docs.forEach(doc => {
+      cardsMap.set(doc.id, doc.data() as BusinessCard);
+    });
+
+    // Auto-claim cards assigned to this email but not yet claimed
+    const q3 = query(
+      cardsRef,
+      where('email', '==', email),
+      where('user_id', '==', '')
+    );
+    const snapshot3 = await getDocs(q3);
+    for (const docSnap of snapshot3.docs) {
+      const card = docSnap.data() as BusinessCard;
+      card.user_id = userId;
+      cardsMap.set(card.id, card);
+      updateBusinessCard(card.id, { user_id: userId }).catch(err => 
+        console.error('Failed to claim auto-generated card:', err)
+      );
+    }
+  }
+
+  const cards = Array.from(cardsMap.values()).map(card => {
     if (!card.theme_id) {
       card.theme_id = 'modern-blue';
       updateBusinessCard(card.id, { theme_id: 'modern-blue' }).catch(err =>
@@ -52,6 +84,9 @@ export async function getBusinessCardsByUser(userId: string): Promise<BusinessCa
     }
     if (!card.phones) {
       card.phones = [];
+    }
+    if (!card.card_type) {
+      card.card_type = 'personal';
     }
     return card;
   });
@@ -87,6 +122,9 @@ export async function getBusinessCardBySlug(slug: string): Promise<BusinessCard 
   }
   if (!card.phones) {
     card.phones = [];
+  }
+  if (!card.card_type) {
+    card.card_type = 'personal';
   }
 
   return card;

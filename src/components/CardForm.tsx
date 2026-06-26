@@ -3,7 +3,8 @@ import { useAuth } from '../contexts/AuthContext';
 import { BusinessCard, SocialMedia } from '../lib/firebase';
 import { createBusinessCard, updateBusinessCard } from '../services/firestore';
 import { uploadImageToImgBB } from '../services/imgbb';
-import { X, Save, Plus, Trash2, Linkedin, Twitter, Facebook, Instagram, Github, Youtube, MessageCircle, Upload, Video, Send, Image as ImageIcon } from 'lucide-react';
+import { uploadFileToStorage } from '../services/storageService';
+import { X, Save, Plus, Trash2, Linkedin, Twitter, Facebook, Instagram, Github, Youtube, MessageCircle, Upload, Video, Send, Image as ImageIcon, FileText, Briefcase } from 'lucide-react';
 import ThemeSelector from './ThemeSelector';
 import { getAuthUrl } from '../services/googleCalendar';
 
@@ -29,10 +30,18 @@ export default function CardForm({ card, onClose }: CardFormProps) {
   const [loading, setLoading] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
   const [uploadingBanner, setUploadingBanner] = useState(false);
+  const [uploadingCV, setUploadingCV] = useState(false);
+  const [uploadingPortfolio, setUploadingPortfolio] = useState(false);
+  const [uploadingPortfolioImages, setUploadingPortfolioImages] = useState(false);
+  const [uploadingCompanyProfile, setUploadingCompanyProfile] = useState(false);
   const [error, setError] = useState('');
   const [activeTab, setActiveTab] = useState<'basic' | 'social' | 'theme' | 'settings'>('basic');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const bannerInputRef = useRef<HTMLInputElement>(null);
+  const cvInputRef = useRef<HTMLInputElement>(null);
+  const portfolioInputRef = useRef<HTMLInputElement>(null);
+  const portfolioImagesInputRef = useRef<HTMLInputElement>(null);
+  const companyProfileInputRef = useRef<HTMLInputElement>(null);
   const [formData, setFormData] = useState({
     slug: '',
     full_name: '',
@@ -45,6 +54,10 @@ export default function CardForm({ card, onClose }: CardFormProps) {
     bio: '',
     avatar_url: '',
     banner_url: '',
+    cv_url: '',
+    portfolio_url: '',
+    portfolio_images: [] as string[],
+    company_profile_url: '',
     social_media: [] as SocialMedia[],
     theme_id: 'modern-blue',
     allow_contact_sharing: false,
@@ -52,6 +65,8 @@ export default function CardForm({ card, onClose }: CardFormProps) {
     google_calendar_enabled: false,
     google_calendar_id: 'primary',
     google_calendar_email: '',
+    card_type: 'personal' as 'personal' | 'company',
+    business_category: '',
   });
 
   useEffect(() => {
@@ -68,6 +83,10 @@ export default function CardForm({ card, onClose }: CardFormProps) {
         bio: card.bio || '',
         avatar_url: card.avatar_url || '',
         banner_url: card.banner_url || '',
+        cv_url: card.cv_url || '',
+        portfolio_url: card.portfolio_url || '',
+        portfolio_images: card.portfolio_images || [],
+        company_profile_url: card.company_profile_url || '',
         social_media: card.social_media || [],
         theme_id: card.theme_id || 'modern-blue',
         allow_contact_sharing: card.allow_contact_sharing || false,
@@ -75,6 +94,8 @@ export default function CardForm({ card, onClose }: CardFormProps) {
         google_calendar_enabled: card.google_calendar_enabled || false,
         google_calendar_id: card.google_calendar_id || 'primary',
         google_calendar_email: card.google_calendar_email || '',
+        card_type: card.card_type || 'personal',
+        business_category: card.business_category || '',
       });
     }
   }, [card]);
@@ -158,675 +179,1035 @@ export default function CardForm({ card, onClose }: CardFormProps) {
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!user) return;
-
+  const handleCVSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user) return;
+    if (file.type !== 'application/pdf') {
+      setError('Please select a PDF file for your CV');
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      setError('CV must be less than 10MB');
+      return;
+    }
+    setUploadingCV(true);
     setError('');
-    setLoading(true);
-
     try {
-      const slug = formData.slug || generateSlug(formData.full_name);
-
-      const cardData = {
-        slug,
-        full_name: formData.full_name,
-        title: formData.title || null,
-        company: formData.company || null,
-        email: formData.email || null,
-        emails: card?.emails || [],
-        phone: formData.phone || null,
-        phones: card?.phones || [],
-        website: formData.website || null,
-        address: formData.address || null,
-        bio: formData.bio || null,
-        avatar_url: formData.avatar_url || null,
-        banner_url: formData.banner_url || null,
-        social_media: formData.social_media.filter(sm => sm.url.trim() !== ''),
-        theme_id: formData.theme_id,
-        allow_contact_sharing: formData.allow_contact_sharing,
-        is_active: formData.is_active,
-        google_calendar_enabled: formData.google_calendar_enabled,
-        google_calendar_id: formData.google_calendar_id || null,
-        google_calendar_email: formData.google_calendar_email || null,
-      };
-
-      if (card) {
-        await updateBusinessCard(card.id, cardData);
-      } else {
-        await createBusinessCard(user.uid, {
-          user_id: user.uid,
-          ...cardData,
-        });
-      }
-
-      onClose();
+      const cvUrl = await uploadFileToStorage(file, user.uid, 'cv');
+      setFormData({ ...formData, cv_url: cvUrl });
     } catch (err: unknown) {
       setError((err as Error).message);
     } finally {
-      setLoading(false);
-    }
-  };
+      setUploadingCV(false);
+    };
 
-  const handleConnectCalendar = async () => {
-    if (!user) return;
-    
-    setError('');
-    setLoading(true);
-    try {
-      const slug = formData.slug || generateSlug(formData.full_name);
-      const cardData = {
-        slug,
-        full_name: formData.full_name,
-        title: formData.title || null,
-        company: formData.company || null,
-        email: formData.email || null,
-        emails: card?.emails || [],
-        phone: formData.phone || null,
-        phones: card?.phones || [],
-        website: formData.website || null,
-        address: formData.address || null,
-        bio: formData.bio || null,
-        avatar_url: formData.avatar_url || null,
-        banner_url: formData.banner_url || null,
-        social_media: formData.social_media.filter(sm => sm.url.trim() !== ''),
-        theme_id: formData.theme_id,
-        allow_contact_sharing: formData.allow_contact_sharing,
-        is_active: formData.is_active,
-        google_calendar_enabled: formData.google_calendar_enabled,
-        google_calendar_id: formData.google_calendar_id || null,
-        google_calendar_email: formData.google_calendar_email || null,
-      };
-
-      let activeCardId = card?.id;
-      if (card) {
-        await updateBusinessCard(card.id, cardData);
-      } else {
-        const newCard = await createBusinessCard(user.uid, {
-          user_id: user.uid,
-          ...cardData,
-        });
-        activeCardId = newCard.id;
+    const handleCompanyProfileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      if (!file || !user) return;
+      if (file.type !== 'application/pdf') {
+        setError('Please select a PDF file for your Company Profile');
+        return;
       }
-      
-      window.location.href = getAuthUrl(activeCardId!);
-    } catch (err: any) {
-      setError(err.message || 'Failed to save card before redirect.');
-      setLoading(false);
-    }
-  };
+      if (file.size > 15 * 1024 * 1024) {
+        setError('Company Profile must be less than 15MB');
+        return;
+      }
+      setUploadingCompanyProfile(true);
+      setError('');
+      try {
+        const companyProfileUrl = await uploadFileToStorage(file, user.uid, 'company_profile');
+        setFormData({ ...formData, company_profile_url: companyProfileUrl });
+      } catch (err: unknown) {
+        setError((err as Error).message);
+      } finally {
+        setUploadingCompanyProfile(false);
+      }
+    };
 
-  const usedPlatforms = formData.social_media.map(sm => sm.platform);
-  const availablePlatforms = SOCIAL_PLATFORMS.filter(p => !usedPlatforms.includes(p.name));
+    const handlePortfolioSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      if (!file || !user) return;
+      if (file.type !== 'application/pdf') {
+        setError('Please select a PDF file for your Portfolio');
+        return;
+      }
+      if (file.size > 15 * 1024 * 1024) {
+        setError('Portfolio must be less than 15MB');
+        return;
+      }
+      setUploadingPortfolio(true);
+      setError('');
+      try {
+        const portfolioUrl = await uploadFileToStorage(file, user.uid, 'portfolio');
+        setFormData({ ...formData, portfolio_url: portfolioUrl });
+      } catch (err: unknown) {
+        setError((err as Error).message);
+      } finally {
+        setUploadingPortfolio(false);
+      }
+    };
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-slate-100 py-0 sm:py-8">
-      <div className="max-w-4xl mx-auto">
-        <div className="bg-white sm:rounded-2xl shadow-xl overflow-hidden min-h-screen sm:min-h-0">
-          <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-4 sm:px-8 py-4 sm:py-6 flex justify-between items-center sticky top-0 z-10">
-            <div className="flex-1">
-              <h2 className="text-xl sm:text-2xl font-bold text-white">
-                {card ? 'Edit Card' : 'Create New Card'}
-              </h2>
-              <p className="text-blue-100 text-xs sm:text-sm mt-1 hidden sm:block">Build your professional digital presence</p>
+    const handlePortfolioImagesSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+      const files = Array.from(e.target.files || []);
+      if (files.length === 0 || !user) return;
+
+      const currentImages = formData.portfolio_images || [];
+      if (currentImages.length + files.length > 10) {
+        setError(`You can only upload up to 10 portfolio images. Currently you have ${currentImages.length}.`);
+        return;
+      }
+
+      for (const file of files) {
+        if (!file.type.startsWith('image/')) {
+          setError('Please select image files only');
+          return;
+        }
+        if (file.size > 5 * 1024 * 1024) {
+          setError('Each image must be less than 5MB');
+          return;
+        }
+      }
+
+      setUploadingPortfolioImages(true);
+      setError('');
+
+      try {
+        const uploadPromises = files.map(file => uploadFileToStorage(file, user.uid, 'portfolio'));
+        const newUrls = await Promise.all(uploadPromises);
+        setFormData({
+          ...formData,
+          portfolio_images: [...currentImages, ...newUrls]
+        });
+      } catch (err: unknown) {
+        setError((err as Error).message);
+      } finally {
+        setUploadingPortfolioImages(false);
+        if (portfolioImagesInputRef.current) {
+          portfolioImagesInputRef.current.value = '';
+        }
+      }
+    };
+
+    const handleSubmit = async (e: React.FormEvent) => {
+      e.preventDefault();
+      if (!user) return;
+
+      setError('');
+      setLoading(true);
+
+      try {
+        const slug = formData.slug || generateSlug(formData.full_name);
+
+        const cardData = {
+          slug,
+          full_name: formData.full_name,
+          title: formData.card_type === 'company' ? null : (formData.title || null),
+          company: formData.card_type === 'company' ? null : (formData.company || null),
+          email: formData.email || null,
+          emails: card?.emails || [],
+          phone: formData.phone || null,
+          phones: card?.phones || [],
+          website: formData.website || null,
+          address: formData.address || null,
+          bio: formData.bio || null,
+          avatar_url: formData.avatar_url || null,
+          banner_url: formData.banner_url || null,
+          cv_url: formData.cv_url || null,
+          portfolio_url: formData.portfolio_url || null,
+          portfolio_images: formData.portfolio_images || [],
+          company_profile_url: formData.company_profile_url || null,
+          social_media: formData.social_media.filter(sm => sm.url.trim() !== ''),
+          theme_id: formData.theme_id,
+          allow_contact_sharing: formData.allow_contact_sharing,
+          is_active: formData.is_active,
+          google_calendar_enabled: formData.google_calendar_enabled,
+          google_calendar_id: formData.google_calendar_id || null,
+          google_calendar_email: formData.google_calendar_email || null,
+          card_type: formData.card_type,
+          business_category: formData.card_type === 'company' ? (formData.business_category || null) : null,
+        };
+
+        if (card) {
+          await updateBusinessCard(card.id, cardData);
+        } else {
+          await createBusinessCard(user.uid, {
+            user_id: user.uid,
+            ...cardData,
+          });
+        }
+
+        onClose();
+      } catch (err: unknown) {
+        setError((err as Error).message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    const handleConnectCalendar = async () => {
+      if (!user) return;
+
+      setError('');
+      setLoading(true);
+      try {
+        const slug = formData.slug || generateSlug(formData.full_name);
+        const cardData = {
+          slug,
+          full_name: formData.full_name,
+          title: formData.card_type === 'company' ? null : (formData.title || null),
+          company: formData.card_type === 'company' ? null : (formData.company || null),
+          email: formData.email || null,
+          emails: card?.emails || [],
+          phone: formData.phone || null,
+          phones: card?.phones || [],
+          website: formData.website || null,
+          address: formData.address || null,
+          bio: formData.bio || null,
+          avatar_url: formData.avatar_url || null,
+          banner_url: formData.banner_url || null,
+          cv_url: formData.cv_url || null,
+          portfolio_url: formData.portfolio_url || null,
+          portfolio_images: formData.portfolio_images || [],
+          company_profile_url: formData.company_profile_url || null,
+          social_media: formData.social_media.filter(sm => sm.url.trim() !== ''),
+          theme_id: formData.theme_id,
+          allow_contact_sharing: formData.allow_contact_sharing,
+          is_active: formData.is_active,
+          google_calendar_enabled: formData.google_calendar_enabled,
+          google_calendar_id: formData.google_calendar_id || null,
+          google_calendar_email: formData.google_calendar_email || null,
+          card_type: formData.card_type,
+          business_category: formData.card_type === 'company' ? (formData.business_category || null) : null,
+        };
+
+        let activeCardId = card?.id;
+        if (card) {
+          await updateBusinessCard(card.id, cardData);
+        } else {
+          const newCard = await createBusinessCard(user.uid, {
+            user_id: user.uid,
+            ...cardData,
+          });
+          activeCardId = newCard.id;
+        }
+
+        window.location.href = getAuthUrl(activeCardId!);
+      } catch (err: any) {
+        setError(err.message || 'Failed to save card before redirect.');
+        setLoading(false);
+      }
+    };
+
+    const usedPlatforms = formData.social_media.map(sm => sm.platform);
+    const availablePlatforms = SOCIAL_PLATFORMS.filter(p => !usedPlatforms.includes(p.name));
+
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-slate-100 py-0 sm:py-8">
+        <div className="max-w-4xl mx-auto">
+          <div className="bg-white sm:rounded-2xl shadow-xl overflow-hidden min-h-screen sm:min-h-0">
+            <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-4 sm:px-8 py-4 sm:py-6 flex justify-between items-center sticky top-0 z-10">
+              <div className="flex-1">
+                <h2 className="text-xl sm:text-2xl font-bold text-white">
+                  {card ? 'Edit Card' : 'Create New Card'}
+                </h2>
+                <p className="text-blue-100 text-xs sm:text-sm mt-1 hidden sm:block">Build your professional digital presence</p>
+              </div>
+              <button
+                onClick={onClose}
+                className="p-2 hover:bg-blue-500 rounded-lg transition text-white flex-shrink-0"
+                aria-label="Close"
+              >
+                <X size={24} />
+              </button>
             </div>
-            <button
-              onClick={onClose}
-              className="p-2 hover:bg-blue-500 rounded-lg transition text-white flex-shrink-0"
-              aria-label="Close"
-            >
-              <X size={24} />
-            </button>
-          </div>
 
-          <div className="border-b border-slate-200 sticky top-[72px] sm:top-[88px] z-10 bg-white">
-            <div className="flex overflow-x-auto scrollbar-hide px-2 sm:px-8">
-              <button
-                type="button"
-                onClick={() => setActiveTab('basic')}
-                className={`px-3 sm:px-6 py-3 sm:py-4 font-medium transition border-b-2 whitespace-nowrap text-sm sm:text-base ${
-                  activeTab === 'basic'
+            <div className="border-b border-slate-200 sticky top-[72px] sm:top-[88px] z-10 bg-white">
+              <div className="flex overflow-x-auto scrollbar-hide px-2 sm:px-8">
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('basic')}
+                  className={`px-3 sm:px-6 py-3 sm:py-4 font-medium transition border-b-2 whitespace-nowrap text-sm sm:text-base ${activeTab === 'basic'
                     ? 'border-blue-600 text-blue-600'
                     : 'border-transparent text-slate-600 hover:text-slate-900'
-                }`}
-              >
-                Basic Info
-              </button>
-              <button
-                type="button"
-                onClick={() => setActiveTab('social')}
-                className={`px-3 sm:px-6 py-3 sm:py-4 font-medium transition border-b-2 whitespace-nowrap text-sm sm:text-base ${
-                  activeTab === 'social'
+                    }`}
+                >
+                  Basic Info
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('social')}
+                  className={`px-3 sm:px-6 py-3 sm:py-4 font-medium transition border-b-2 whitespace-nowrap text-sm sm:text-base ${activeTab === 'social'
                     ? 'border-blue-600 text-blue-600'
                     : 'border-transparent text-slate-600 hover:text-slate-900'
-                }`}
-              >
-                Social
-              </button>
-              <button
-                type="button"
-                onClick={() => setActiveTab('theme')}
-                className={`px-3 sm:px-6 py-3 sm:py-4 font-medium transition border-b-2 whitespace-nowrap text-sm sm:text-base ${
-                  activeTab === 'theme'
+                    }`}
+                >
+                  Social
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('theme')}
+                  className={`px-3 sm:px-6 py-3 sm:py-4 font-medium transition border-b-2 whitespace-nowrap text-sm sm:text-base ${activeTab === 'theme'
                     ? 'border-blue-600 text-blue-600'
                     : 'border-transparent text-slate-600 hover:text-slate-900'
-                }`}
-              >
-                Theme
-              </button>
-              <button
-                type="button"
-                onClick={() => setActiveTab('settings')}
-                className={`px-3 sm:px-6 py-3 sm:py-4 font-medium transition border-b-2 whitespace-nowrap text-sm sm:text-base ${
-                  activeTab === 'settings'
+                    }`}
+                >
+                  Theme
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('settings')}
+                  className={`px-3 sm:px-6 py-3 sm:py-4 font-medium transition border-b-2 whitespace-nowrap text-sm sm:text-base ${activeTab === 'settings'
                     ? 'border-blue-600 text-blue-600'
                     : 'border-transparent text-slate-600 hover:text-slate-900'
-                }`}
-              >
-                Settings
-              </button>
+                    }`}
+                >
+                  Settings
+                </button>
+              </div>
             </div>
-          </div>
 
-          <form onSubmit={handleSubmit}>
-            <div className="p-4 sm:p-6 lg:p-8">
-              {activeTab === 'basic' && (
-                <div className="space-y-4 sm:space-y-6">
-                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
-                    <div className="lg:col-span-3">
-                      <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6 p-4 sm:p-6 bg-slate-50 rounded-xl">
-                        {formData.avatar_url ? (
-                          <img
-                            src={formData.avatar_url}
-                            alt="Preview"
-                            className="w-20 h-20 sm:w-24 sm:h-24 rounded-full object-cover border-4 border-white shadow-md flex-shrink-0"
-                          />
-                        ) : (
-                          <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white text-2xl sm:text-3xl font-bold border-4 border-white shadow-md flex-shrink-0">
-                            {formData.full_name ? formData.full_name.charAt(0).toUpperCase() : '?'}
+            <form onSubmit={handleSubmit}>
+              <div className="p-4 sm:p-6 lg:p-8">
+                {activeTab === 'basic' && (
+                  <div className="space-y-4 sm:space-y-6">
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
+                      <div className="lg:col-span-3">
+                        <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6 p-4 sm:p-6 bg-slate-50 rounded-xl">
+                          {formData.avatar_url ? (
+                            <img
+                              src={formData.avatar_url}
+                              alt="Preview"
+                              className="w-20 h-20 sm:w-24 sm:h-24 rounded-full object-cover border-4 border-white shadow-md flex-shrink-0"
+                            />
+                          ) : (
+                            <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white text-2xl sm:text-3xl font-bold border-4 border-white shadow-md flex-shrink-0">
+                              {formData.full_name ? formData.full_name.charAt(0).toUpperCase() : '?'}
+                            </div>
+                          )}
+                          <div className="flex-1 w-full">
+                            <label className="block text-sm font-medium text-slate-700 mb-2">
+                              Avatar Image
+                            </label>
+                            <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+                              <input
+                                type="url"
+                                value={formData.avatar_url}
+                                onChange={(e) => setFormData({ ...formData, avatar_url: e.target.value })}
+                                placeholder="Image URL"
+                                className="flex-1 px-3 sm:px-4 py-2 sm:py-2 text-sm sm:text-base rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
+                              />
+                              <input
+                                ref={fileInputRef}
+                                type="file"
+                                accept="image/*"
+                                onChange={handleFileSelect}
+                                className="hidden"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => fileInputRef.current?.click()}
+                                disabled={uploadingImage}
+                                className="flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap text-sm sm:text-base"
+                              >
+                                <Upload size={18} />
+                                {uploadingImage ? 'Uploading...' : 'Upload'}
+                              </button>
+                            </div>
+                            <p className="text-xs text-slate-500 mt-2">
+                              Upload an image or paste a URL. Max 5MB.
+                            </p>
                           </div>
-                        )}
-                        <div className="flex-1 w-full">
-                          <label className="block text-sm font-medium text-slate-700 mb-2">
-                            Avatar Image
-                          </label>
+                        </div>
+                      </div>
+
+                      <div className="lg:col-span-3">
+                        <div className="p-4 sm:p-6 bg-slate-50 rounded-xl">
+                          <div className="flex items-center gap-3 mb-3">
+                            <div className="p-2 bg-blue-100 rounded-lg">
+                              <ImageIcon size={20} className="text-blue-600" />
+                            </div>
+                            <div>
+                              <label className="block text-sm font-medium text-slate-700">
+                                Banner Image / Company Logo
+                              </label>
+                              <p className="text-xs text-slate-500">Header image displayed behind your avatar</p>
+                            </div>
+                          </div>
+
+                          {formData.banner_url && (
+                            <div className="mb-3 relative">
+                              <img
+                                src={formData.banner_url}
+                                alt="Banner preview"
+                                className="w-full h-32 object-cover rounded-lg border-2 border-slate-200"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => setFormData({ ...formData, banner_url: '' })}
+                                className="absolute top-2 right-2 p-1.5 bg-red-500 text-white rounded-full hover:bg-red-600 transition"
+                              >
+                                <X size={14} />
+                              </button>
+                            </div>
+                          )}
+
                           <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
                             <input
                               type="url"
-                              value={formData.avatar_url}
-                              onChange={(e) => setFormData({ ...formData, avatar_url: e.target.value })}
-                              placeholder="Image URL"
+                              value={formData.banner_url}
+                              onChange={(e) => setFormData({ ...formData, banner_url: e.target.value })}
+                              placeholder="Banner image URL"
                               className="flex-1 px-3 sm:px-4 py-2 sm:py-2 text-sm sm:text-base rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
                             />
                             <input
-                              ref={fileInputRef}
+                              ref={bannerInputRef}
                               type="file"
                               accept="image/*"
-                              onChange={handleFileSelect}
+                              onChange={handleBannerSelect}
                               className="hidden"
                             />
                             <button
                               type="button"
-                              onClick={() => fileInputRef.current?.click()}
-                              disabled={uploadingImage}
+                              onClick={() => bannerInputRef.current?.click()}
+                              disabled={uploadingBanner}
                               className="flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap text-sm sm:text-base"
                             >
                               <Upload size={18} />
-                              {uploadingImage ? 'Uploading...' : 'Upload'}
+                              {uploadingBanner ? 'Uploading...' : 'Upload'}
                             </button>
                           </div>
                           <p className="text-xs text-slate-500 mt-2">
-                            Upload an image or paste a URL. Max 5MB.
+                            Recommended: 1200x400px. Upload an image or paste a URL. Max 5MB.
                           </p>
                         </div>
                       </div>
-                    </div>
 
-                    <div className="lg:col-span-3">
-                      <div className="p-4 sm:p-6 bg-slate-50 rounded-xl">
-                        <div className="flex items-center gap-3 mb-3">
-                          <div className="p-2 bg-blue-100 rounded-lg">
-                            <ImageIcon size={20} className="text-blue-600" />
-                          </div>
-                          <div>
-                            <label className="block text-sm font-medium text-slate-700">
-                              Banner Image / Company Logo
-                            </label>
-                            <p className="text-xs text-slate-500">Header image displayed behind your avatar</p>
-                          </div>
-                        </div>
-
-                        {formData.banner_url && (
-                          <div className="mb-3 relative">
-                            <img
-                              src={formData.banner_url}
-                              alt="Banner preview"
-                              className="w-full h-32 object-cover rounded-lg border-2 border-slate-200"
-                            />
+                      {/* Card Type Selection (only during creation) */}
+                      {!card && (
+                        <div className="bg-slate-50 p-6 rounded-xl border border-slate-200 lg:col-span-3">
+                          <label className="block text-sm font-semibold text-slate-700 mb-3">
+                            Choose Card Type
+                          </label>
+                          <div className="grid grid-cols-2 gap-4">
                             <button
                               type="button"
-                              onClick={() => setFormData({ ...formData, banner_url: '' })}
-                              className="absolute top-2 right-2 p-1.5 bg-red-500 text-white rounded-full hover:bg-red-600 transition"
+                              onClick={() => setFormData({ ...formData, card_type: 'personal' })}
+                              className={`p-4 rounded-xl border-2 flex flex-col items-center gap-2 transition text-center ${formData.card_type === 'personal'
+                                ? 'border-blue-600 bg-blue-50 text-blue-600'
+                                : 'border-slate-200 hover:border-slate-350 text-slate-600'
+                                }`}
                             >
-                              <X size={14} />
+                              <span className="text-2xl">👤</span>
+                              <span className="font-bold text-sm">Personal Card</span>
+                              <span className="text-xs text-slate-500">For individuals, portfolios, and job titles.</span>
                             </button>
-                          </div>
-                        )}
-
-                        <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
-                          <input
-                            type="url"
-                            value={formData.banner_url}
-                            onChange={(e) => setFormData({ ...formData, banner_url: e.target.value })}
-                            placeholder="Banner image URL"
-                            className="flex-1 px-3 sm:px-4 py-2 sm:py-2 text-sm sm:text-base rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
-                          />
-                          <input
-                            ref={bannerInputRef}
-                            type="file"
-                            accept="image/*"
-                            onChange={handleBannerSelect}
-                            className="hidden"
-                          />
-                          <button
-                            type="button"
-                            onClick={() => bannerInputRef.current?.click()}
-                            disabled={uploadingBanner}
-                            className="flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap text-sm sm:text-base"
-                          >
-                            <Upload size={18} />
-                            {uploadingBanner ? 'Uploading...' : 'Upload'}
-                          </button>
-                        </div>
-                        <p className="text-xs text-slate-500 mt-2">
-                          Recommended: 1200x400px. Upload an image or paste a URL. Max 5MB.
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="lg:col-span-2">
-                      <label className="block text-sm font-medium text-slate-700 mb-2">
-                        Full Name *
-                      </label>
-                      <input
-                        type="text"
-                        value={formData.full_name}
-                        onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
-                        required
-                        className="w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-2">
-                        URL Slug *
-                      </label>
-                      <input
-                        type="text"
-                        value={formData.slug}
-                        onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
-                        placeholder="auto-generated"
-                        className="w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-2">
-                        Job Title
-                      </label>
-                      <input
-                        type="text"
-                        value={formData.title}
-                        onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                        placeholder="e.g., CEO, Designer"
-                        className="w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
-                      />
-                    </div>
-
-                    <div className="lg:col-span-2">
-                      <label className="block text-sm font-medium text-slate-700 mb-2">
-                        Company
-                      </label>
-                      <input
-                        type="text"
-                        value={formData.company}
-                        onChange={(e) => setFormData({ ...formData, company: e.target.value })}
-                        placeholder="Company name"
-                        className="w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-2">
-                        Email
-                      </label>
-                      <input
-                        type="email"
-                        value={formData.email}
-                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                        placeholder="your@email.com"
-                        className="w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-2">
-                        Phone
-                      </label>
-                      <input
-                        type="tel"
-                        value={formData.phone}
-                        onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                        placeholder="+1 (555) 123-4567"
-                        className="w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-2">
-                        Website
-                      </label>
-                      <input
-                        type="url"
-                        value={formData.website}
-                        onChange={(e) => setFormData({ ...formData, website: e.target.value })}
-                        placeholder="https://yourwebsite.com"
-                        className="w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
-                      />
-                    </div>
-
-                    <div className="lg:col-span-3">
-                      <label className="block text-sm font-medium text-slate-700 mb-2">
-                        Address
-                      </label>
-                      <input
-                        type="text"
-                        value={formData.address}
-                        onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                        placeholder="123 Main St, City, State 12345"
-                        className="w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
-                      />
-                    </div>
-
-                    <div className="lg:col-span-3">
-                      <label className="block text-sm font-medium text-slate-700 mb-2">
-                        Bio
-                      </label>
-                      <textarea
-                        value={formData.bio}
-                        onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
-                        rows={4}
-                        placeholder="Tell people about yourself and what you do..."
-                        className="w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition resize-none"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 sm:p-4">
-                    <p className="text-xs sm:text-sm text-blue-900 break-all">
-                      <strong>Preview URL:</strong> {window.location.origin}/c/{formData.slug || generateSlug(formData.full_name)}
-                    </p>
-                  </div>
-                </div>
-              )}
-
-              {activeTab === 'social' && (
-                <div className="space-y-4 sm:space-y-6">
-                  <div className="text-center pb-4 sm:pb-6 border-b border-slate-200">
-                    <h3 className="text-lg sm:text-xl font-semibold text-slate-900 mb-2">Social Media Links</h3>
-                    <p className="text-slate-600 text-xs sm:text-sm">Add your social media profiles to connect with people</p>
-                  </div>
-
-                  {formData.social_media.length > 0 && (
-                    <div className="space-y-3 sm:space-y-4">
-                      {formData.social_media.map((social, index) => {
-                        const platformData = SOCIAL_PLATFORMS.find(p => p.name === social.platform);
-                        const Icon = platformData?.icon || Linkedin;
-
-                        return (
-                          <div key={index} className="flex items-center gap-3 sm:gap-4 p-3 sm:p-4 bg-slate-50 rounded-xl border border-slate-200">
-                            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg bg-white border border-slate-200 flex items-center justify-center flex-shrink-0">
-                              <Icon size={20} className="text-blue-600 sm:w-6 sm:h-6" />
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <label className="block text-xs font-medium text-slate-600 mb-1">
-                                {social.platform}
-                              </label>
-                              <input
-                                type="url"
-                                value={social.url}
-                                onChange={(e) => updateSocialMedia(index, e.target.value)}
-                                placeholder={platformData?.placeholder}
-                                className="w-full px-3 py-2 text-sm sm:text-base rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
-                              />
-                            </div>
                             <button
                               type="button"
-                              onClick={() => removeSocialMedia(index)}
-                              className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition flex-shrink-0"
-                              aria-label={`Remove ${social.platform}`}
+                              onClick={() => setFormData({ ...formData, card_type: 'company' })}
+                              className={`p-4 rounded-xl border-2 flex flex-col items-center gap-2 transition text-center ${formData.card_type === 'company'
+                                ? 'border-blue-600 bg-blue-50 text-blue-600'
+                                : 'border-slate-200 hover:border-slate-350 text-slate-600'
+                                }`}
                             >
-                              <Trash2 size={18} className="sm:w-5 sm:h-5" />
+                              <span className="text-2xl">🏢</span>
+                              <span className="font-bold text-sm">Company Card</span>
+                              <span className="text-xs text-slate-500">For business profiles, team listings, and catalogs.</span>
                             </button>
                           </div>
-                        );
-                      })}
-                    </div>
-                  )}
-
-                  {availablePlatforms.length > 0 && (
-                    <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-3">
-                        Add Social Media Platform
-                      </label>
-                      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-3">
-                        {availablePlatforms.map((platform) => {
-                          const Icon = platform.icon;
-                          return (
-                            <button
-                              key={platform.name}
-                              type="button"
-                              onClick={() => addSocialMedia(platform.name)}
-                              className="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-3 p-3 sm:p-4 bg-white border-2 border-slate-200 rounded-xl hover:border-blue-500 hover:bg-blue-50 transition group"
-                            >
-                              <Icon size={20} className="text-slate-600 group-hover:text-blue-600 flex-shrink-0" />
-                              <span className="text-xs sm:text-sm font-medium text-slate-700 group-hover:text-blue-600 text-center">
-                                {platform.name}
-                              </span>
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  )}
-
-                  {formData.social_media.length === 0 && (
-                    <div className="text-center py-8 sm:py-12">
-                      <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-4">
-                        <Plus size={24} className="text-slate-400 sm:w-8 sm:h-8" />
-                      </div>
-                      <p className="text-slate-600 mb-2 text-sm sm:text-base">No social media links added yet</p>
-                      <p className="text-xs sm:text-sm text-slate-500">Click on any platform above to get started</p>
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {activeTab === 'theme' && (
-                <ThemeSelector
-                  selectedThemeId={formData.theme_id}
-                  onThemeSelect={(themeId) => setFormData({ ...formData, theme_id: themeId })}
-                />
-              )}
-
-              {activeTab === 'settings' && (
-                <div className="space-y-4 sm:space-y-6">
-                  <div>
-                    <h3 className="text-lg sm:text-xl font-semibold text-slate-900 mb-3 sm:mb-4">Card Settings</h3>
-
-                    <div className="space-y-3 sm:space-y-4">
-                      <div className="p-4 sm:p-6 bg-slate-50 rounded-xl border border-slate-200">
-                        <label className="flex items-start gap-3 sm:gap-4 cursor-pointer">
-                          <input
-                            type="checkbox"
-                            checked={formData.is_active}
-                            onChange={(e) => setFormData({ ...formData, is_active: e.target.checked })}
-                            className="w-5 h-5 rounded border-slate-300 text-blue-600 focus:ring-2 focus:ring-blue-500 mt-0.5 flex-shrink-0"
-                          />
-                          <div>
-                            <span className="text-sm sm:text-base font-medium text-slate-900 block mb-1">
-                              Card is Active
-                            </span>
-                            <span className="text-xs sm:text-sm text-slate-600">
-                              Make your card publicly visible and accessible via its URL
-                            </span>
-                          </div>
-                        </label>
-                      </div>
-
-                      <div className="p-4 sm:p-6 bg-green-50 rounded-xl border border-green-200">
-                        <label className="flex items-start gap-3 sm:gap-4 cursor-pointer">
-                          <input
-                            type="checkbox"
-                            checked={formData.allow_contact_sharing}
-                            onChange={(e) => setFormData({ ...formData, allow_contact_sharing: e.target.checked })}
-                            className="w-5 h-5 rounded border-green-300 text-green-600 focus:ring-2 focus:ring-green-500 mt-0.5 flex-shrink-0"
-                          />
-                          <div>
-                            <span className="text-sm sm:text-base font-medium text-slate-900 block mb-1">
-                              Allow Contact Sharing
-                            </span>
-                            <span className="text-xs sm:text-sm text-slate-700">
-                              Let visitors share their contact information with you when they view your card. You'll receive their details and can follow up easily.
-                            </span>
-                          </div>
-                        </label>
-                      </div>
-
-                      {formData.allow_contact_sharing && (
-                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 sm:p-4">
-                          <p className="text-xs sm:text-sm text-blue-900">
-                            <strong>Note:</strong> When enabled, visitors will see a "Share Your Contact" button on your card. You can view all shared contacts in your dashboard.
-                          </p>
                         </div>
                       )}
 
-                      <div className="p-4 sm:p-6 bg-blue-50 rounded-xl border border-blue-200">
-                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                          <div className="flex-1">
-                            <span className="text-sm sm:text-base font-semibold text-slate-900 block mb-1">
-                              Google Calendar Appointment Booking
-                            </span>
-                            <span className="text-xs sm:text-sm text-slate-700 block mb-2">
-                              Let clients schedule appointments directly from your card. Meetings will be placed in your Google Calendar.
-                            </span>
-                            {formData.google_calendar_email && (
-                              <span className="inline-flex items-center gap-1.5 text-xs text-green-700 bg-green-50 border border-green-200 px-2.5 py-1 rounded-full font-medium mt-1">
-                                <span className="w-1.5 h-1.5 rounded-full bg-green-500 mr-1"></span>
-                                Connected: {formData.google_calendar_email}
-                              </span>
+                      <div className="lg:col-span-2">
+                        <label className="block text-sm font-medium text-slate-700 mb-2">
+                          {formData.card_type === 'company' ? 'Company Name *' : 'Full Name *'}
+                        </label>
+                        <input
+                          type="text"
+                          value={formData.full_name}
+                          onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
+                          required
+                          className="w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-2">
+                          URL Slug *
+                        </label>
+                        <input
+                          type="text"
+                          value={formData.slug}
+                          onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
+                          placeholder="auto-generated"
+                          className="w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
+                        />
+                      </div>
+
+                      {formData.card_type === 'company' ? (
+                        <div className="lg:col-span-3">
+                          <label className="block text-sm font-medium text-slate-700 mb-2">
+                            Business Category
+                          </label>
+                          <input
+                            type="text"
+                            value={formData.business_category}
+                            onChange={(e) => setFormData({ ...formData, business_category: e.target.value })}
+                            placeholder="e.g. Software Company, Restaurant, Hospital"
+                            className="w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
+                          />
+                        </div>
+                      ) : (
+                        <>
+                          <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-2">
+                              Job Title
+                            </label>
+                            <input
+                              type="text"
+                              value={formData.title}
+                              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                              placeholder="e.g., CEO, Designer"
+                              className="w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
+                            />
+                          </div>
+
+                          <div className="lg:col-span-2">
+                            <label className="block text-sm font-medium text-slate-700 mb-2">
+                              Company
+                            </label>
+                            <input
+                              type="text"
+                              value={formData.company}
+                              onChange={(e) => setFormData({ ...formData, company: e.target.value })}
+                              placeholder="Company name"
+                              className="w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
+                            />
+                          </div>
+                        </>
+                      )}
+
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-2">
+                          Email
+                        </label>
+                        <input
+                          type="email"
+                          value={formData.email}
+                          onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                          placeholder="your@email.com"
+                          className="w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-2">
+                          Phone
+                        </label>
+                        <input
+                          type="tel"
+                          value={formData.phone}
+                          onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                          placeholder="+1 (555) 123-4567"
+                          className="w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-2">
+                          Website
+                        </label>
+                        <input
+                          type="url"
+                          value={formData.website}
+                          onChange={(e) => setFormData({ ...formData, website: e.target.value })}
+                          placeholder="https://yourwebsite.com"
+                          className="w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
+                        />
+                      </div>
+
+                      <div className="lg:col-span-3">
+                        <label className="block text-sm font-medium text-slate-700 mb-2">
+                          Address
+                        </label>
+                        <input
+                          type="text"
+                          value={formData.address}
+                          onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                          placeholder="123 Main St, City, State 12345"
+                          className="w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
+                        />
+                      </div>
+
+                      <div className="lg:col-span-3">
+                        <label className="block text-sm font-medium text-slate-700 mb-2">
+                          Bio
+                        </label>
+                        <textarea
+                          value={formData.bio}
+                          onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
+                          rows={4}
+                          placeholder="Tell people about yourself and what you do..."
+                          className="w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition resize-none"
+                        />
+                      </div>
+
+                      {formData.card_type === 'personal' && (
+                        <div className="lg:col-span-3 grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 mt-2">
+                          {/* CV Upload */}
+                          <div className="p-4 sm:p-6 bg-slate-50 rounded-xl border border-slate-200">
+                            <div className="flex items-center gap-3 mb-3">
+                              <div className="p-2 bg-blue-100 rounded-lg">
+                                <FileText size={20} className="text-blue-600" />
+                              </div>
+                              <div>
+                                <label className="block text-sm font-medium text-slate-700">CV / Resume</label>
+                                <p className="text-xs text-slate-500">Upload your CV (PDF format)</p>
+                              </div>
+                            </div>
+                            <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+                              <input
+                                type="url"
+                                value={formData.cv_url}
+                                onChange={(e) => setFormData({ ...formData, cv_url: e.target.value })}
+                                placeholder="PDF URL or upload"
+                                className="flex-1 px-3 py-2 text-sm rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
+                              />
+                              <input
+                                ref={cvInputRef}
+                                type="file"
+                                accept="application/pdf"
+                                onChange={handleCVSelect}
+                                className="hidden"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => cvInputRef.current?.click()}
+                                disabled={uploadingCV}
+                                className="flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition disabled:opacity-50 whitespace-nowrap text-sm"
+                              >
+                                <Upload size={16} />
+                                {uploadingCV ? 'Uploading...' : 'Upload PDF'}
+                              </button>
+                            </div>
+                            {formData.cv_url && (
+                              <a href={formData.cv_url} target="_blank" rel="noopener noreferrer" className="inline-block mt-3 text-sm text-blue-600 hover:underline">
+                                View current CV
+                              </a>
                             )}
                           </div>
-                          
-                          <div className="flex items-center gap-3">
-                            {formData.google_calendar_email ? (
+
+                          {/* Portfolio Upload */}
+                          <div className="p-4 sm:p-6 bg-slate-50 rounded-xl border border-slate-200 lg:col-span-2">
+                            <div className="flex items-center gap-3 mb-3">
+                              <div className="p-2 bg-purple-100 rounded-lg">
+                                <Briefcase size={20} className="text-purple-600" />
+                              </div>
+                              <div>
+                                <label className="block text-sm font-medium text-slate-700">Portfolio</label>
+                                <p className="text-xs text-slate-500">Provide a PDF portfolio document OR upload up to 10 portfolio images.</p>
+                              </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+                              {/* PDF Option */}
+                              <div className="space-y-3 pr-0 md:pr-6 md:border-r border-slate-200">
+                                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500">Option A: PDF Document</label>
+                                <div className="flex flex-col gap-2">
+                                  <input
+                                    type="url"
+                                    value={formData.portfolio_url}
+                                    onChange={(e) => setFormData({ ...formData, portfolio_url: e.target.value })}
+                                    placeholder="PDF URL or upload"
+                                    className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
+                                  />
+                                  <input
+                                    ref={portfolioInputRef}
+                                    type="file"
+                                    accept="application/pdf"
+                                    onChange={handlePortfolioSelect}
+                                    className="hidden"
+                                  />
+                                  <button
+                                    type="button"
+                                    onClick={() => portfolioInputRef.current?.click()}
+                                    disabled={uploadingPortfolio}
+                                    className="flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition disabled:opacity-50 text-sm w-full"
+                                  >
+                                    <Upload size={16} />
+                                    {uploadingPortfolio ? 'Uploading...' : 'Upload PDF'}
+                                  </button>
+                                </div>
+                                {formData.portfolio_url && (
+                                  <a href={formData.portfolio_url} target="_blank" rel="noopener noreferrer" className="inline-block mt-1 text-sm text-blue-600 hover:underline">
+                                    View current PDF Portfolio
+                                  </a>
+                                )}
+                              </div>
+
+                              {/* Images Option */}
+                              <div className="space-y-3">
+                                <div className="flex justify-between items-center">
+                                  <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500">Option B: Pictures ({formData.portfolio_images?.length || 0}/10)</label>
+                                </div>
+
+                                <input
+                                  ref={portfolioImagesInputRef}
+                                  type="file"
+                                  accept="image/*"
+                                  multiple
+                                  onChange={handlePortfolioImagesSelect}
+                                  className="hidden"
+                                />
+
+                                <button
+                                  type="button"
+                                  onClick={() => portfolioImagesInputRef.current?.click()}
+                                  disabled={uploadingPortfolioImages || (formData.portfolio_images?.length || 0) >= 10}
+                                  className="flex items-center justify-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition disabled:opacity-50 text-sm w-full"
+                                >
+                                  <Upload size={16} />
+                                  {uploadingPortfolioImages ? 'Uploading...' : 'Upload Images'}
+                                </button>
+
+                                {formData.portfolio_images && formData.portfolio_images.length > 0 && (
+                                  <div className="grid grid-cols-5 gap-2 mt-3">
+                                    {formData.portfolio_images.map((imgUrl, index) => (
+                                      <div key={index} className="relative group aspect-square rounded-lg overflow-hidden border border-slate-200 bg-white">
+                                        <img src={imgUrl} alt={`Portfolio ${index + 1}`} className="w-full h-full object-cover" />
+                                        <button
+                                          type="button"
+                                          onClick={() => {
+                                            const updated = formData.portfolio_images.filter((_, i) => i !== index);
+                                            setFormData({ ...formData, portfolio_images: updated });
+                                          }}
+                                          className="absolute top-1 right-1 bg-red-600 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition hover:bg-red-700"
+                                        >
+                                          <X size={10} />
+                                        </button>
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {formData.card_type === 'company' && (
+                        <div className="lg:col-span-3 grid grid-cols-1 gap-4 sm:gap-6 mt-2">
+                          {/* Company Profile Upload */}
+                          <div className="p-4 sm:p-6 bg-slate-50 rounded-xl border border-slate-200">
+                            <div className="flex items-center gap-3 mb-3">
+                              <div className="p-2 bg-blue-100 rounded-lg">
+                                <FileText size={20} className="text-blue-600" />
+                              </div>
+                              <div>
+                                <label className="block text-sm font-medium text-slate-700">Company Profile</label>
+                                <p className="text-xs text-slate-500">Upload your Company Profile (PDF format)</p>
+                              </div>
+                            </div>
+                            <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+                              <input
+                                type="url"
+                                value={formData.company_profile_url}
+                                onChange={(e) => setFormData({ ...formData, company_profile_url: e.target.value })}
+                                placeholder="PDF URL or upload"
+                                className="flex-1 px-3 py-2 text-sm rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
+                              />
+                              <input
+                                ref={companyProfileInputRef}
+                                type="file"
+                                accept="application/pdf"
+                                onChange={handleCompanyProfileSelect}
+                                className="hidden"
+                              />
                               <button
                                 type="button"
-                                onClick={() => {
-                                  setFormData({
-                                    ...formData,
-                                    google_calendar_enabled: false,
-                                    google_calendar_email: '',
-                                    google_calendar_id: 'primary',
-                                  });
-                                }}
-                                className="px-4 py-2 border border-red-300 text-red-700 rounded-lg hover:bg-red-50 text-sm font-medium transition"
+                                onClick={() => companyProfileInputRef.current?.click()}
+                                disabled={uploadingCompanyProfile}
+                                className="flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition disabled:opacity-50 whitespace-nowrap text-sm"
                               >
-                                Disconnect
+                                <Upload size={16} />
+                                {uploadingCompanyProfile ? 'Uploading...' : 'Upload PDF'}
                               </button>
-                            ) : (
-                              <button
-                                type="button"
-                                onClick={handleConnectCalendar}
-                                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition shadow-sm"
-                              >
-                                Connect Calendar
-                              </button>
+                            </div>
+                            {formData.company_profile_url && (
+                              <a href={formData.company_profile_url} target="_blank" rel="noopener noreferrer" className="inline-block mt-3 text-sm text-blue-600 hover:underline">
+                                View current Company Profile
+                              </a>
                             )}
                           </div>
                         </div>
+                      )}
+                    </div>
 
-                        {formData.google_calendar_email && (
-                          <div className="mt-4 pt-4 border-t border-blue-200 space-y-4">
-                            <label className="flex items-start gap-3 cursor-pointer">
-                              <input
-                                type="checkbox"
-                                checked={formData.google_calendar_enabled}
-                                onChange={(e) => setFormData({ ...formData, google_calendar_enabled: e.target.checked })}
-                                className="w-5 h-5 rounded border-blue-300 text-blue-600 focus:ring-2 focus:ring-blue-500 mt-0.5 animate-pulse"
-                              />
-                              <div>
-                                <span className="text-sm font-medium text-slate-900 block">
-                                  Enable booking for this card
-                                </span>
-                                <span className="text-xs text-slate-600">
-                                  Show "Book Appointment" button on your public card
-                                </span>
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 sm:p-4">
+                      <p className="text-xs sm:text-sm text-blue-900 break-all">
+                        <strong>Preview URL:</strong> {window.location.origin}/c/{formData.slug || generateSlug(formData.full_name)}
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {activeTab === 'social' && (
+                  <div className="space-y-4 sm:space-y-6">
+                    <div className="text-center pb-4 sm:pb-6 border-b border-slate-200">
+                      <h3 className="text-lg sm:text-xl font-semibold text-slate-900 mb-2">Social Media Links</h3>
+                      <p className="text-slate-600 text-xs sm:text-sm">Add your social media profiles to connect with people</p>
+                    </div>
+
+                    {formData.social_media.length > 0 && (
+                      <div className="space-y-3 sm:space-y-4">
+                        {formData.social_media.map((social, index) => {
+                          const platformData = SOCIAL_PLATFORMS.find(p => p.name === social.platform);
+                          const Icon = platformData?.icon || Linkedin;
+
+                          return (
+                            <div key={index} className="flex items-center gap-3 sm:gap-4 p-3 sm:p-4 bg-slate-50 rounded-xl border border-slate-200">
+                              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg bg-white border border-slate-200 flex items-center justify-center flex-shrink-0">
+                                <Icon size={20} className="text-blue-600 sm:w-6 sm:h-6" />
                               </div>
-                            </label>
-
-                            {formData.google_calendar_enabled && (
-                              <div className="mt-3">
-                                <label className="block text-xs font-semibold text-slate-700 mb-1">
-                                  Calendar ID (e.g. your Gmail or a shared Google Calendar ID)
+                              <div className="flex-1 min-w-0">
+                                <label className="block text-xs font-medium text-slate-600 mb-1">
+                                  {social.platform}
                                 </label>
                                 <input
-                                  type="text"
-                                  value={formData.google_calendar_id}
-                                  onChange={(e) => setFormData({ ...formData, google_calendar_id: e.target.value })}
-                                  placeholder="primary"
-                                  className="w-full max-w-md px-3 py-2 text-sm rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500 outline-none transition"
+                                  type="url"
+                                  value={social.url}
+                                  onChange={(e) => updateSocialMedia(index, e.target.value)}
+                                  placeholder={platformData?.placeholder}
+                                  className="w-full px-3 py-2 text-sm sm:text-base rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
                                 />
-                                <p className="text-[11px] text-slate-500 mt-1">
-                                  Defaults to "primary" (your main calendar associated with the connected Google account).
-                                </p>
                               </div>
-                            )}
+                              <button
+                                type="button"
+                                onClick={() => removeSocialMedia(index)}
+                                className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition flex-shrink-0"
+                                aria-label={`Remove ${social.platform}`}
+                              >
+                                <Trash2 size={18} className="sm:w-5 sm:h-5" />
+                              </button>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+
+                    {availablePlatforms.length > 0 && (
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-3">
+                          Add Social Media Platform
+                        </label>
+                        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-3">
+                          {availablePlatforms.map((platform) => {
+                            const Icon = platform.icon;
+                            return (
+                              <button
+                                key={platform.name}
+                                type="button"
+                                onClick={() => addSocialMedia(platform.name)}
+                                className="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-3 p-3 sm:p-4 bg-white border-2 border-slate-200 rounded-xl hover:border-blue-500 hover:bg-blue-50 transition group"
+                              >
+                                <Icon size={20} className="text-slate-600 group-hover:text-blue-600 flex-shrink-0" />
+                                <span className="text-xs sm:text-sm font-medium text-slate-700 group-hover:text-blue-600 text-center">
+                                  {platform.name}
+                                </span>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+
+                    {formData.social_media.length === 0 && (
+                      <div className="text-center py-8 sm:py-12">
+                        <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-4">
+                          <Plus size={24} className="text-slate-400 sm:w-8 sm:h-8" />
+                        </div>
+                        <p className="text-slate-600 mb-2 text-sm sm:text-base">No social media links added yet</p>
+                        <p className="text-xs sm:text-sm text-slate-500">Click on any platform above to get started</p>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {activeTab === 'theme' && (
+                  <ThemeSelector
+                    selectedThemeId={formData.theme_id}
+                    onThemeSelect={(themeId) => setFormData({ ...formData, theme_id: themeId })}
+                  />
+                )}
+
+                {activeTab === 'settings' && (
+                  <div className="space-y-4 sm:space-y-6">
+                    <div>
+                      <h3 className="text-lg sm:text-xl font-semibold text-slate-900 mb-3 sm:mb-4">Card Settings</h3>
+
+                      <div className="space-y-3 sm:space-y-4">
+                        <div className="p-4 sm:p-6 bg-slate-50 rounded-xl border border-slate-200">
+                          <label className="flex items-start gap-3 sm:gap-4 cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={formData.is_active}
+                              onChange={(e) => setFormData({ ...formData, is_active: e.target.checked })}
+                              className="w-5 h-5 rounded border-slate-300 text-blue-600 focus:ring-2 focus:ring-blue-500 mt-0.5 flex-shrink-0"
+                            />
+                            <div>
+                              <span className="text-sm sm:text-base font-medium text-slate-900 block mb-1">
+                                Card is Active
+                              </span>
+                              <span className="text-xs sm:text-sm text-slate-600">
+                                Make your card publicly visible and accessible via its URL
+                              </span>
+                            </div>
+                          </label>
+                        </div>
+
+                        <div className="p-4 sm:p-6 bg-green-50 rounded-xl border border-green-200">
+                          <label className="flex items-start gap-3 sm:gap-4 cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={formData.allow_contact_sharing}
+                              onChange={(e) => setFormData({ ...formData, allow_contact_sharing: e.target.checked })}
+                              className="w-5 h-5 rounded border-green-300 text-green-600 focus:ring-2 focus:ring-green-500 mt-0.5 flex-shrink-0"
+                            />
+                            <div>
+                              <span className="text-sm sm:text-base font-medium text-slate-900 block mb-1">
+                                Allow Contact Sharing
+                              </span>
+                              <span className="text-xs sm:text-sm text-slate-700">
+                                Let visitors share their contact information with you when they view your card. You'll receive their details and can follow up easily.
+                              </span>
+                            </div>
+                          </label>
+                        </div>
+
+                        {formData.allow_contact_sharing && (
+                          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 sm:p-4">
+                            <p className="text-xs sm:text-sm text-blue-900">
+                              <strong>Note:</strong> When enabled, visitors will see a "Share Your Contact" button on your card. You can view all shared contacts in your dashboard.
+                            </p>
                           </div>
                         )}
+
+                        <div className="p-4 sm:p-6 bg-blue-50 rounded-xl border border-blue-200">
+                          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                            <div className="flex-1">
+                              <span className="text-sm sm:text-base font-semibold text-slate-900 block mb-1">
+                                Google Calendar Appointment Booking
+                              </span>
+                              <span className="text-xs sm:text-sm text-slate-700 block mb-2">
+                                Let clients schedule appointments directly from your card. Meetings will be placed in your Google Calendar.
+                              </span>
+                              {formData.google_calendar_email && (
+                                <span className="inline-flex items-center gap-1.5 text-xs text-green-700 bg-green-50 border border-green-200 px-2.5 py-1 rounded-full font-medium mt-1">
+                                  <span className="w-1.5 h-1.5 rounded-full bg-green-500 mr-1"></span>
+                                  Connected: {formData.google_calendar_email}
+                                </span>
+                              )}
+                            </div>
+
+                            <div className="flex items-center gap-3">
+                              {formData.google_calendar_email ? (
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setFormData({
+                                      ...formData,
+                                      google_calendar_enabled: false,
+                                      google_calendar_email: '',
+                                      google_calendar_id: 'primary',
+                                    });
+                                  }}
+                                  className="px-4 py-2 border border-red-300 text-red-700 rounded-lg hover:bg-red-50 text-sm font-medium transition"
+                                >
+                                  Disconnect
+                                </button>
+                              ) : (
+                                <button
+                                  type="button"
+                                  onClick={handleConnectCalendar}
+                                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition shadow-sm"
+                                >
+                                  Connect Calendar
+                                </button>
+                              )}
+                            </div>
+                          </div>
+
+                          {formData.google_calendar_email && (
+                            <div className="mt-4 pt-4 border-t border-blue-200 space-y-4">
+                              <label className="flex items-start gap-3 cursor-pointer">
+                                <input
+                                  type="checkbox"
+                                  checked={formData.google_calendar_enabled}
+                                  onChange={(e) => setFormData({ ...formData, google_calendar_enabled: e.target.checked })}
+                                  className="w-5 h-5 rounded border-blue-300 text-blue-600 focus:ring-2 focus:ring-blue-500 mt-0.5 animate-pulse"
+                                />
+                                <div>
+                                  <span className="text-sm font-medium text-slate-900 block">
+                                    Enable booking for this card
+                                  </span>
+                                  <span className="text-xs text-slate-600">
+                                    Show "Book Appointment" button on your public card
+                                  </span>
+                                </div>
+                              </label>
+
+                              {formData.google_calendar_enabled && (
+                                <div className="mt-3">
+                                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                                    Calendar ID (e.g. your Gmail or a shared Google Calendar ID)
+                                  </label>
+                                  <input
+                                    type="text"
+                                    value={formData.google_calendar_id}
+                                    onChange={(e) => setFormData({ ...formData, google_calendar_id: e.target.value })}
+                                    placeholder="primary"
+                                    className="w-full max-w-md px-3 py-2 text-sm rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500 outline-none transition"
+                                  />
+                                  <p className="text-[11px] text-slate-500 mt-1">
+                                    Defaults to "primary" (your main calendar associated with the connected Google account).
+                                  </p>
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              )}
+                )}
 
-              {error && (
-                <div className="bg-red-50 text-red-600 px-3 sm:px-4 py-3 rounded-lg text-xs sm:text-sm">
-                  {error}
-                </div>
-              )}
-            </div>
+                {error && (
+                  <div className="bg-red-50 text-red-600 px-3 sm:px-4 py-3 rounded-lg text-xs sm:text-sm">
+                    {error}
+                  </div>
+                )}
+              </div>
 
-            <div className="px-4 sm:px-8 py-4 sm:py-6 bg-slate-50 border-t border-slate-200 flex gap-3 sm:gap-4 sticky bottom-0">
-              <button
-                type="button"
-                onClick={onClose}
-                className="flex-1 px-4 sm:px-6 py-3 border-2 border-slate-300 text-slate-700 rounded-lg hover:bg-white transition font-medium text-sm sm:text-base"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                disabled={loading}
-                className="flex-1 flex items-center justify-center gap-2 bg-blue-600 text-white px-4 sm:px-6 py-3 rounded-lg hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed font-medium text-sm sm:text-base"
-              >
-                <Save size={18} className="sm:w-5 sm:h-5" />
-                {loading ? 'Saving...' : 'Save Card'}
-              </button>
-            </div>
-          </form>
+              <div className="px-4 sm:px-8 py-4 sm:py-6 bg-slate-50 border-t border-slate-200 flex gap-3 sm:gap-4 sticky bottom-0">
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="flex-1 px-4 sm:px-6 py-3 border-2 border-slate-300 text-slate-700 rounded-lg hover:bg-white transition font-medium text-sm sm:text-base"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="flex-1 flex items-center justify-center gap-2 bg-blue-600 text-white px-4 sm:px-6 py-3 rounded-lg hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed font-medium text-sm sm:text-base"
+                >
+                  <Save size={18} className="sm:w-5 sm:h-5" />
+                  {loading ? 'Saving...' : 'Save Card'}
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       </div>
-    </div>
-  );
+    );
+  }
 }
