@@ -12,3 +12,46 @@
     scrollbar-width: none;
   }
 }
+
+/* Custom Theme Support */
+.custom-theme-bg {
+  background: radial-gradient(circle at top, var(--custom-bg-color, #1e1b4b) 0%, #030712 100%);
+  background-attachment: fixed;
+}
+
+.custom-theme-card {
+  background: var(--custom-card-bg, rgba(255, 255, 255, 0.03));
+  border: 1px solid var(--custom-card-border, rgba(255, 255, 255, 0.08));
+}
+
+.custom-theme-accent-bg {
+  background-color: var(--custom-color, #ec4899);
+}
+
+.custom-theme-accent-text {
+  color: var(--custom-color, #ec4899);
+}
+
+.custom-theme-accent-border {
+  border-color: var(--custom-color, #ec4899);
+}
+
+.custom-theme-button {
+  background: linear-gradient(135deg, var(--custom-color, #ec4899) 0%, var(--custom-color-dark, #be185d) 100%);
+  color: var(--custom-contrast-color, #ffffff);
+}
+
+.custom-theme-button:hover {
+  filter: brightness(1.1);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3), 0 8px 10px -6px rgba(0, 0, 0, 0.3);
+}
+
+.custom-theme-text-primary {
+  color: var(--custom-text-primary, #ffffff);
+}
+
+.custom-theme-text-secondary {
+  color: var(--custom-text-secondary, rgba(255, 255, 255, 0.7));
+}
+
+

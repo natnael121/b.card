@@ -45,6 +45,35 @@ const getSocialColor = (platform: string) => {
   }
 };
 
+function getContrastColor(hexColor: string) {
+  if (!hexColor || !hexColor.startsWith('#')) return '#ffffff';
+  const r = parseInt(hexColor.slice(1, 3), 16);
+  const g = parseInt(hexColor.slice(3, 5), 16);
+  const b = parseInt(hexColor.slice(5, 7), 16);
+  const yiq = ((r * 299) + (g * 587) + (b * 114)) / 1000;
+  return yiq >= 128 ? '#000000' : '#ffffff';
+}
+
+function getDarkerColor(hexColor: string, percent = 20) {
+  if (!hexColor || !hexColor.startsWith('#')) return '#be185d';
+  const num = parseInt(hexColor.replace('#', ''), 16);
+  const amt = Math.round(2.55 * percent);
+  const R = (num >> 16) - amt;
+  const G = ((num >> 8) & 0x00ff) - amt;
+  const B = (num & 0x0000ff) - amt;
+  return (
+    '#' +
+    (
+      0x1000000 +
+      (R < 0 ? 0 : R > 255 ? 255 : R) * 0x10000 +
+      (G < 0 ? 0 : G > 255 ? 255 : G) * 0x100 +
+      (B < 0 ? 0 : B > 255 ? 255 : B)
+    )
+      .toString(16)
+      .slice(1)
+  );
+}
+
 export default function PublicCard({ slug }: PublicCardProps) {
   const [card, setCard] = useState<BusinessCard | null>(null);
   const [loading, setLoading] = useState(true);
@@ -59,6 +88,18 @@ export default function PublicCard({ slug }: PublicCardProps) {
   useEffect(() => {
     loadCard();
   }, [slug]);
+
+  useEffect(() => {
+    if (card?.custom_font) {
+      const link = document.createElement('link');
+      link.href = `https://fonts.googleapis.com/css2?family=${card.custom_font.replace(/ /g, '+')}:wght@300;400;500;600;700;800;900&display=swap`;
+      link.rel = 'stylesheet';
+      document.head.appendChild(link);
+      return () => {
+        document.head.removeChild(link);
+      };
+    }
+  }, [card?.custom_font]);
 
   useEffect(() => {
     if (card) {
@@ -619,12 +660,29 @@ export default function PublicCard({ slug }: PublicCardProps) {
   const theme = getThemeById(card.theme_id || 'modern-blue');
   const t = theme.styles;
 
+  const isCustomTheme = card.theme_id === 'custom';
+  const customStyles = isCustomTheme ? {
+    '--custom-color': card.custom_color || '#ec4899',
+    '--custom-color-dark': getDarkerColor(card.custom_color || '#ec4899', 15),
+    '--custom-contrast-color': getContrastColor(card.custom_color || '#ec4899'),
+    '--custom-bg-color': card.custom_bg_color || '#1e1b4b',
+    '--custom-card-bg': card.custom_bg_style === 'glass-light' 
+      ? 'rgba(255, 255, 255, 0.45)' 
+      : 'rgba(15, 23, 42, 0.45)',
+    '--custom-card-border': card.custom_bg_style === 'glass-light'
+      ? 'rgba(255, 255, 255, 0.4)'
+      : 'rgba(255, 255, 255, 0.08)',
+    '--custom-text-primary': card.custom_bg_style === 'glass-light' ? '#0f172a' : '#ffffff',
+    '--custom-text-secondary': card.custom_bg_style === 'glass-light' ? '#475569' : 'rgba(255, 255, 255, 0.7)',
+    fontFamily: card.custom_font ? `'${card.custom_font}', sans-serif` : undefined,
+  } as React.CSSProperties : undefined;
+
   return (
-    <div className={`min-h-screen ${t.pageBackground} flex flex-col items-center justify-center p-0 sm:p-6`}>
+    <div style={customStyles} className={`min-h-screen ${t.pageBackground} flex flex-col items-center justify-center p-0 sm:p-6`}>
       <div className="w-full max-w-md mx-auto my-auto">
         <div className={`${t.cardContainer} overflow-hidden`}>
           {/* Themed banner / header */}
-          <div className={`relative ${t.header} overflow-hidden`}>
+          <div className={`relative ${t.header}`}>
             {card.banner_url && (
               <img
                 src={card.banner_url}

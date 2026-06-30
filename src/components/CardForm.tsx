@@ -60,6 +60,10 @@ export default function CardForm({ card, onClose }: CardFormProps) {
     company_profile_url: '',
     social_media: [] as SocialMedia[],
     theme_id: 'modern-blue',
+    custom_color: '#ec4899',
+    custom_bg_color: '#1e1b4b',
+    custom_font: 'Inter',
+    custom_bg_style: 'glass-dark' as 'glass-dark' | 'glass-light',
     allow_contact_sharing: false,
     is_active: true,
     google_calendar_enabled: false,
@@ -89,6 +93,10 @@ export default function CardForm({ card, onClose }: CardFormProps) {
         company_profile_url: card.company_profile_url || '',
         social_media: card.social_media || [],
         theme_id: card.theme_id || 'modern-blue',
+        custom_color: card.custom_color || '#ec4899',
+        custom_bg_color: card.custom_bg_color || '#1e1b4b',
+        custom_font: card.custom_font || 'Inter',
+        custom_bg_style: card.custom_bg_style || 'glass-dark',
         allow_contact_sharing: card.allow_contact_sharing || false,
         is_active: card.is_active,
         google_calendar_enabled: card.google_calendar_enabled || false,
@@ -273,7 +281,7 @@ export default function CardForm({ card, onClose }: CardFormProps) {
     setError('');
 
     try {
-      const uploadPromises = files.map(file => uploadFileToStorage(file, user.uid, 'portfolio'));
+      const uploadPromises = files.map(file => uploadImageToImgBB(file));
       const newUrls = await Promise.all(uploadPromises);
       setFormData({
         ...formData,
@@ -319,6 +327,10 @@ export default function CardForm({ card, onClose }: CardFormProps) {
         company_profile_url: formData.company_profile_url || null,
         social_media: formData.social_media.filter(sm => sm.url.trim() !== ''),
         theme_id: formData.theme_id,
+        custom_color: formData.theme_id === 'custom' ? formData.custom_color : null,
+        custom_bg_color: formData.theme_id === 'custom' ? formData.custom_bg_color : null,
+        custom_font: formData.theme_id === 'custom' ? formData.custom_font : null,
+        custom_bg_style: formData.theme_id === 'custom' ? formData.custom_bg_style : null,
         allow_contact_sharing: formData.allow_contact_sharing,
         is_active: formData.is_active,
         google_calendar_enabled: formData.google_calendar_enabled,
@@ -372,6 +384,10 @@ export default function CardForm({ card, onClose }: CardFormProps) {
         company_profile_url: formData.company_profile_url || null,
         social_media: formData.social_media.filter(sm => sm.url.trim() !== ''),
         theme_id: formData.theme_id,
+        custom_color: formData.theme_id === 'custom' ? formData.custom_color : null,
+        custom_bg_color: formData.theme_id === 'custom' ? formData.custom_bg_color : null,
+        custom_font: formData.theme_id === 'custom' ? formData.custom_font : null,
+        custom_bg_style: formData.theme_id === 'custom' ? formData.custom_bg_style : null,
         allow_contact_sharing: formData.allow_contact_sharing,
         is_active: formData.is_active,
         google_calendar_enabled: formData.google_calendar_enabled,
@@ -1034,10 +1050,102 @@ export default function CardForm({ card, onClose }: CardFormProps) {
               )}
 
               {activeTab === 'theme' && (
-                <ThemeSelector
-                  selectedThemeId={formData.theme_id}
-                  onThemeSelect={(themeId) => setFormData({ ...formData, theme_id: themeId })}
-                />
+                <div className="space-y-6">
+                  <ThemeSelector
+                    selectedThemeId={formData.theme_id}
+                    onThemeSelect={(themeId) => setFormData({ ...formData, theme_id: themeId })}
+                  />
+
+                  {formData.theme_id === 'custom' && (
+                    <div className="mt-8 p-6 bg-slate-50 rounded-2xl border-2 border-dashed border-blue-200 space-y-6">
+                      <div>
+                        <h4 className="text-base font-bold text-slate-800 flex items-center gap-2">
+                          🎨 Customize Your Theme Design
+                        </h4>
+                        <p className="text-xs text-slate-500 mt-1">Design a unique style with custom colors and typography</p>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {/* Accent Color */}
+                        <div className="space-y-2">
+                          <label className="block text-sm font-semibold text-slate-700">
+                            Accent Color (Buttons, Borders)
+                          </label>
+                          <div className="flex gap-3">
+                            <input
+                              type="color"
+                              value={formData.custom_color}
+                              onChange={(e) => setFormData({ ...formData, custom_color: e.target.value })}
+                              className="w-12 h-12 rounded-lg cursor-pointer border border-slate-300 bg-transparent p-0.5"
+                            />
+                            <input
+                              type="text"
+                              value={formData.custom_color}
+                              onChange={(e) => setFormData({ ...formData, custom_color: e.target.value })}
+                              placeholder="#ec4899"
+                              className="flex-1 px-3 py-2 text-sm rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none uppercase font-mono"
+                            />
+                          </div>
+                        </div>
+
+                        {/* Background Color */}
+                        <div className="space-y-2">
+                          <label className="block text-sm font-semibold text-slate-700">
+                            Background Accent Color
+                          </label>
+                          <div className="flex gap-3">
+                            <input
+                              type="color"
+                              value={formData.custom_bg_color}
+                              onChange={(e) => setFormData({ ...formData, custom_bg_color: e.target.value })}
+                              className="w-12 h-12 rounded-lg cursor-pointer border border-slate-300 bg-transparent p-0.5"
+                            />
+                            <input
+                              type="text"
+                              value={formData.custom_bg_color}
+                              onChange={(e) => setFormData({ ...formData, custom_bg_color: e.target.value })}
+                              placeholder="#1e1b4b"
+                              className="flex-1 px-3 py-2 text-sm rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none uppercase font-mono"
+                            />
+                          </div>
+                        </div>
+
+                        {/* Card Glass Style */}
+                        <div className="space-y-2">
+                          <label className="block text-sm font-semibold text-slate-700">
+                            Card Style
+                          </label>
+                          <select
+                            value={formData.custom_bg_style}
+                            onChange={(e) => setFormData({ ...formData, custom_bg_style: e.target.value as 'glass-dark' | 'glass-light' })}
+                            className="w-full px-3 py-2 text-sm sm:text-base rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition bg-white"
+                          >
+                            <option value="glass-dark">🌌 Dark Glassmorphism</option>
+                            <option value="glass-light">❄️ Light Glassmorphism</option>
+                          </select>
+                        </div>
+
+                        {/* Font Selection */}
+                        <div className="space-y-2">
+                          <label className="block text-sm font-semibold text-slate-700">
+                            Font Family
+                          </label>
+                          <select
+                            value={formData.custom_font}
+                            onChange={(e) => setFormData({ ...formData, custom_font: e.target.value })}
+                            className="w-full px-3 py-2 text-sm sm:text-base rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition bg-white"
+                          >
+                            <option value="Inter">Inter (Clean & Professional)</option>
+                            <option value="Poppins">Poppins (Modern & Rounded)</option>
+                            <option value="Outfit">Outfit (Sleek & Premium)</option>
+                            <option value="Playfair Display">Playfair Display (Elegant & Classic)</option>
+                            <option value="Montserrat">Montserrat (Bold & Contemporary)</option>
+                          </select>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
               )}
 
               {activeTab === 'settings' && (

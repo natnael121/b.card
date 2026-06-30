@@ -1,0 +1,36 @@
+import type { CardTheme } from './types';
+
+export const customTheme: CardTheme = {
+  id: 'custom',
+  name: 'Custom (Your Design)',
+  description: 'Design your own card with custom colors and typography',
+  preview: {
+    headerGradient: 'from-pink-500 via-purple-500 to-indigo-500',
+    backgroundColor: 'from-slate-900 to-slate-800',
+    cardBackground: 'bg-white/[0.03]',
+    accentColor: 'bg-pink-500',
+    textColor: 'text-white',
+  },
+  styles: {
+    pageBackground: 'custom-theme-bg',
+    cardContainer: 'custom-theme-card rounded-3xl shadow-2xl backdrop-blur-xl',
+    header: 'h-32 bg-white/5 border-b border-white/10',
+    avatar: 'w-32 h-32 rounded-3xl object-cover border-4 custom-theme-accent-border shadow-xl',
+    avatarFallback: 'w-32 h-32 rounded-3xl custom-theme-button flex items-center justify-center text-3xl font-black border-4 custom-theme-accent-border shadow-xl',
+    title: 'text-4xl font-black custom-theme-text-primary tracking-tight',
+    subtitle: 'text-xl custom-theme-text-secondary font-medium',
+    bioContainer: 'p-6 bg-white/[0.02] rounded-2xl border border-white/[0.05]',
+    bioText: 'custom-theme-text-secondary leading-relaxed text-center text-sm',
+    contactItem: 'flex items-center gap-4 p-4 bg-white/[0.03] rounded-2xl border border-white/[0.06] transition group',
+    contactItemHover: 'hover:bg-white/[0.07] hover:border-white/[0.12]',
+    contactIcon: 'w-12 h-12 rounded-xl bg-white/[0.04] flex items-center justify-center transition custom-theme-accent-text border border-white/[0.05]',
+    contactIconHover: 'group-hover:bg-white/[0.08]',
+    contactLabel: 'text-[10px] font-bold custom-theme-text-secondary uppercase tracking-widest opacity-80',
+    contactValue: 'custom-theme-text-primary font-medium text-sm',
+    socialButton: 'flex items-center justify-center w-12 h-12 bg-white/[0.03] border border-white/[0.06] rounded-xl transition',
+    socialButtonHover: 'hover:bg-white/[0.08] hover:border-white/[0.1] hover:scale-105',
+    actionButton: 'flex items-center justify-center gap-3 custom-theme-button px-6 py-4 rounded-2xl font-bold text-sm shadow-xl transition active:scale-95',
+    actionButtonHover: 'hover:shadow-2xl',
+    qrContainer: 'p-6 bg-white/[0.02] border border-white/[0.05] rounded-2xl',
+  },
+};

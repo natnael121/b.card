@@ -19,6 +19,8 @@ export const secondaryApp = initializeApp(firebaseConfig, 'SecondaryApp');
 export const auth = getAuth(app);
 export const db = getFirestore(app);
 export const storage = getStorage(app);
+storage.maxUploadRetryTime = 10000; // 10 seconds max retry for uploads
+storage.maxOperationRetryTime = 10000; // 10 seconds max retry for other storage operations
 
 export type Profile = {
   id: string;
@@ -110,6 +112,10 @@ export type BusinessCard = {
   company_profile_url?: string | null; // company profile PDF link
   social_media: SocialMedia[];
   theme_id: string;
+  custom_color?: string | null;
+  custom_bg_color?: string | null;
+  custom_font?: string | null;
+  custom_bg_style?: 'glass-dark' | 'glass-light' | null;
   allow_contact_sharing: boolean;
   is_active: boolean;
   created_at: string;

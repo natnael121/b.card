@@ -7,6 +7,7 @@ import { natureGreenTheme } from './natureGreen';
 import { corporateNavyTheme } from './corporateNavy';
 import { sunsetWarmTheme } from './sunsetWarm';
 import { dotDarkTheme } from './dotDark';
+import { customTheme } from './custom';
 
 export type { CardTheme } from './types';
 
@@ -19,6 +20,7 @@ export const CARD_THEMES: CardTheme[] = [
   corporateNavyTheme,
   sunsetWarmTheme,
   dotDarkTheme,
+  customTheme,
 ];
 
 export function getThemeById(themeId: string): CardTheme {
